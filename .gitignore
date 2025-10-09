@@ -1,0 +1,53 @@
+# ==========================================================
+# C++ & Flex/Bison project .gitignore
+# ==========================================================
+
+# --- Compiler outputs ---
+*.o
+*.out
+*.obj
+*.exe
+*.a
+*.so
+*.dll
+*.dylib
+
+# --- Flex/Bison generated files ---
+lex.yy.c
+lex.yy.cc
+lex.yy.h
+y.tab.c
+y.tab.h
+y.output
+parser.tab.c
+parser.tab.h
+parser.output
+
+# --- Build directories ---
+build/
+bin/
+dist/
+Debug/
+Release/
+
+# --- IDE and OS specific files ---
+# VSCode
+.vscode/
+# CLion / JetBrains
+.idea/
+cmake-build-*/
+# macOS
+.DS_Store
+# Windows
+Thumbs.db
+# Linux
+*~
+
+# --- Logs and temporary files ---
+*.log
+*.tmp
+*.swp
+
+# --- Dependency managers / configs ---
+*.depend
+*.d
