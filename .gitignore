@@ -24,7 +24,7 @@ parser.tab.h
 parser.output
 
 # --- Build directories ---
-build/
+Build/
 bin/
 dist/
 Debug/

@@ -1,5 +1,6 @@
 %{
     #include <iostream>
+    #include "tokens.h"
     using namespace std;
 %}
 
@@ -7,12 +8,12 @@
 
 %%
 
-"genset"                { cout << "TOKEN_GENSET" << endl; }
-"disjoint"              { cout << "TOKEN_DISJOINT" << endl; }
-"complete"                { cout << "TOKEN_COMPLETE" << endl; }
-"general"              { cout << "TOKEN_GENERAL" << endl; }
-"specifics"                { cout << "TOKEN_SPECIFICS" << endl; }
-"where"              { cout << "TOKEN_WHERE" << endl; }
-"package"                { cout << "TOKEN_PACKAGE" << endl; }
-
+"genset"                { return  GENSET; }
+"disjoint"              { return  DISJOINT; }
+"complete"              { return  COMPLETE; }
+"general"               { return  GENERAL; }
+"specifics"             { return  SPECIFICS; }
+"where"                 { return  WHERE; }
+"package"               { return  PACKAGE; }
+. ;
 %%

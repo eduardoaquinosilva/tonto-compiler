@@ -11,12 +11,13 @@ void Parser::Start()
         // trata o token recebido do analisador léxico
         switch(lookahead)
         {
-            case IF: cout << "IF\n"; break;
-            case THEN: cout << "THEN\n"; break;
-            case ELSE: cout << "ELSE\n"; break;
-            case ID: cout << "ID: " << scanner.YYText() << "\n"; break;
-            case NUM: cout << "NUM: " << scanner.YYText() << "\n"; break;
-            case RELOP: cout << "RELOP: " << scanner.YYText() << "\n";; break;
+            case GENSET: cout << "genset\n"; break;
+            case DISJOINT: cout << "disjoint\n"; break;
+            case COMPLETE: cout << "complete\n"; break;
+            case GENERAL: cout << "general\n"; break;
+            case SPECIFICS: cout << "specifics\n"; break;
+            case WHERE: cout << "where\n"; break;
+            case PACKAGE: cout << "package\n"; break;
         }
     }
 }
