@@ -16,8 +16,3 @@
 "package"                { cout << "TOKEN_PACKAGE" << endl; }
 
 %%
-
-int main() {
-    yylex();
-    return 0;
-}
