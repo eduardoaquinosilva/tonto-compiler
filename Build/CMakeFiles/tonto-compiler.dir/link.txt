@@ -1,0 +1,1 @@
+/usr/bin/c++ -O3 -DNDEBUG -rdynamic CMakeFiles/tonto-compiler.dir/parser.cpp.o CMakeFiles/tonto-compiler.dir/tonto-compiler.cpp.o CMakeFiles/tonto-compiler.dir/lex.yy.cc.o -o tonto-compiler 

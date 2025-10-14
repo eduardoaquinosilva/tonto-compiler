@@ -1,0 +1,3 @@
+/home/eduardosilva/projects/tonto-compiler/Build/CMakeFiles/tonto-compiler.dir
+/home/eduardosilva/projects/tonto-compiler/Build/CMakeFiles/edit_cache.dir
+/home/eduardosilva/projects/tonto-compiler/Build/CMakeFiles/rebuild_cache.dir
