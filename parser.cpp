@@ -17,7 +17,9 @@ void Parser::Start()
             case GENERAL: cout << "general\n"; break;
             case SPECIFICS: cout << "specifics\n"; break;
             case WHERE: cout << "where\n"; break;
-            case PACKAGE: cout << "package\n"; break;
+            case PACKAGE: cout << scanner.YYText(); break;
+            case TYPE: cout << "token type " << scanner.YYText() << '\n'; break;
+            default: cout << "token " << scanner.YYText() << '\n'; break;
         }
     }
 }
