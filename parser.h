@@ -1,5 +1,8 @@
 #include <FlexLexer.h>
 
+extern int columnNumber;
+extern int keyWordsCount;
+
 class Parser
 {
 private:
