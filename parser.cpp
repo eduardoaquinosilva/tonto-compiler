@@ -30,6 +30,8 @@ void Parser::Start()
             case FUNCTIONAL_COMPLEXES: cout << "<FUNCTIONAL_COMPLEXES>\t" << scanner.lineno() << "\t" << tokenStartColumn << "\n"; break;
             
             case TYPE: cout << "token type " << scanner.YYText() << '\n'; break;
+            case NEW_TYPE: cout << "token new_type " << scanner.YYText() << '\n'; break;
+            case INSTANCE_NAME: cout << "token name_instance " << scanner.YYText() << '\n'; break;
             default: cout << "token " << scanner.YYText() << '\n'; break;
         }
     }

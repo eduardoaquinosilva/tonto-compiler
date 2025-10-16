@@ -30,7 +30,9 @@ package                  { columnNumber += yyleng; keyWordsCount++; return PACKA
 import                   { columnNumber += yyleng; keyWordsCount++; return IMPORT; }
 functional-complexes     { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
  /* fim Palavras chaves */
-A-Z[A-Za-z]DataType      { columnNumber += yyleng; return NEW_TYPE; }
+[A-Z][A-Za-z]*DataType   { columnNumber += yyleng; return NEW_TYPE;}
+
+[a-zA-Z][_A-Za-z]*[0-9]+ { columnNumber += yyleng; return INSTANCE_NAME;}
 {classes_stereotypes}    { columnNumber += yyleng; return CLASS_STEREOTYPE; }
 {relations_stereotypes}  { columnNumber += yyleng; return RELATIONS_STEREOTYPE; }
 {meta}                   { columnNumber += yyleng; return META; }
