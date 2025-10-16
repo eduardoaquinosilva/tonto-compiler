@@ -19,6 +19,7 @@ meta (ordered|const|derived|subsets|redefines)
 %%
 {endline}                { columnNumber = 1; }
 {whitespaces}            { columnNumber += yyleng; }
+ /* inicio Palavras chaves */
 genset                   { columnNumber += yyleng; keyWordsCount++; return GENSET; }
 disjoint                 { columnNumber += yyleng; keyWordsCount++; return DISJOINT; }
 complete                 { columnNumber += yyleng; keyWordsCount++; return COMPLETE; }
@@ -28,6 +29,7 @@ where                    { columnNumber += yyleng; keyWordsCount++; return WHERE
 package                  { columnNumber += yyleng; keyWordsCount++; return PACKAGE; }
 import                   { columnNumber += yyleng; keyWordsCount++; return IMPORT; }
 functional-complexes     { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
+ /* fim Palavras chaves */
 A-Z[A-Za-z]DataType      { columnNumber += yyleng; return NEW_TYPE}
 {classes_stereotypes}    { columnNumber += yyleng; return CLASS_STEREOTYPE; }
 {relations_stereotypes}  { columnNumber += yyleng; return RELATIONS_STEREOTYPE; }
