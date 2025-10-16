@@ -13,5 +13,8 @@ enum {
     META,
 
     // Tipos de dados nativos
-    TYPE
+    TYPE,
+
+    // Novos tipos 
+    NEW_TYPE
 };
