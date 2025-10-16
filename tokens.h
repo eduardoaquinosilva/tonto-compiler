@@ -22,5 +22,11 @@ enum {
     LBRACE, RBRACE, LBRACKET, RBRACKET, LP, RP, COLON, COMMA, DOTDOT, L_RELATION, R_RELATION, ASTHERISTICS, AT,
 
     // Declaração de instancia
-    INSTANCE_NAME
+    INSTANCE_NAME,
+
+    // Declaração de classe
+    CLASS_NAME,
+
+    // Declaração de relação
+    RELATION_NAME
 };

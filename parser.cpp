@@ -32,6 +32,8 @@ void Parser::Start()
             case TYPE: cout << "token type " << scanner.YYText() << '\n'; break;
             case NEW_TYPE: cout << "token new_type " << scanner.YYText() << '\n'; break;
             case INSTANCE_NAME: cout << "token name_instance " << scanner.YYText() << '\n'; break;
+            case CLASS_NAME: cout << "token name_class " << scanner.YYText() << '\n'; break;
+            case RELATION_NAME: cout << "token name_relation " << scanner.YYText() << '\n'; break;
             default: cout << "token " << scanner.YYText() << '\n'; break;
         }
     }
