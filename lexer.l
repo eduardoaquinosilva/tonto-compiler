@@ -30,10 +30,24 @@ package                  { columnNumber += yyleng; keyWordsCount++; return PACKA
 import                   { columnNumber += yyleng; keyWordsCount++; return IMPORT; }
 functional-complexes     { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
  /* fim Palavras chaves */
-A-Z[A-Za-z]DataType      { columnNumber += yyleng; return NEW_TYPE}
+A-Z[A-Za-z]DataType      { columnNumber += yyleng; return NEW_TYPE; }
 {classes_stereotypes}    { columnNumber += yyleng; return CLASS_STEREOTYPE; }
 {relations_stereotypes}  { columnNumber += yyleng; return RELATIONS_STEREOTYPE; }
 {meta}                   { columnNumber += yyleng; return META; }
 {type}                   { columnNumber += yyleng; return TYPE; }
+ /* inicio Símbolos especiais */
+"{"                      { columnNumber += yyleng; return LBRACE; }
+"}"                      { columnNumber += yyleng; return RBRACE; }
+"("                      { columnNumber += yyleng; return LP; }
+")"                      { columnNumber += yyleng; return RP; }
+"["                      { columnNumber += yyleng; return LBRACKET; }
+"]"                      { columnNumber += yyleng; return RBRACKET; }
+".."                     { columnNumber += yyleng; return DOTDOT; }
+"<>--"                   { columnNumber += yyleng; return L_RELATION; }
+"--<>"                   { columnNumber += yyleng; return R_RELATION; }
+"*"                      { columnNumber += yyleng; return ASTHERISTICS; }
+"@"                      { columnNumber += yyleng; return AT; }
+":"                      { columnNumber += yyleng; return COLON; }
+ /* fim Símbolos especiais */
 .                        { columnNumber += yyleng; return -1; }  // Token inválido.
 %%

@@ -16,5 +16,8 @@ enum {
     TYPE,
 
     // Novos tipos 
-    NEW_TYPE
+    NEW_TYPE,
+
+    // Símbolos especiais
+    LBRACE, RBRACE, LBRACKET, RBRACKET, LP, RP, COLON, COMMA, DOTDOT, L_RELATION, R_RELATION, ASTHERISTICS, AT
 };
