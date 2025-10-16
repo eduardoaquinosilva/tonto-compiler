@@ -6,7 +6,6 @@
 %}
 
 %option yylineno
-%option noyywrap
 endline [\n]
 tab [\t]
 space [ ]

@@ -1,13 +1,60 @@
+#include <iostream>
+#include <fstream>
 #include "parser.h"
 #include "tokens.h"
-#include <iostream>
-using std::cout;
+using namespace std;
 
 int columnNumber = 1;
 int keyWordsCount = 0;
 
+char **fileList = nullptr;
+unsigned nFiles = 0;
+unsigned currentFile = 0;
+bool openFile = false;
+ifstream fin;
+
+Parser::Parser(char** list, unsigned count) : lookahead(0) 
+{
+    ::fileList = list;
+    ::nFiles = count;
+}
+
+int yyFlexLexer::yywrap()
+{
+	if (openFile)
+	{
+		openFile = false;
+		fin.close();
+	}
+
+	while (!openFile && (currentFile < nFiles))
+    {
+        fin.open(fileList[currentFile]); 
+
+		if (fin.is_open())
+        {
+			openFile = true;
+			currentFile++; 
+		}
+		else
+		{
+			cout << "Error: Could not open file: " << fileList[currentFile] << "\n";
+            currentFile++;
+		}		
+	}
+
+	return (openFile ? 0 : 1);	
+}
+
 void Parser::Start()
 {
+    scanner.switch_streams(&fin);
+
+    if (scanner.yywrap() == 1) {
+        cout << "No input files provided or all files failed to open.\n";
+        return;
+    }
+
     cout << "Token\t\tLinha\tColuna\n";
     cout << "-------------------------------\n";
 
