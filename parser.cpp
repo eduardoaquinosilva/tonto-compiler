@@ -32,10 +32,26 @@ Parser::Parser(char** list, unsigned count) : lookahead(0)
 
 int yyFlexLexer::yywrap()
 {
+
 	if (openFile)
 	{
 		openFile = false;
 		fin.close();
+        ss << "\nQuantidade de cada token:\nClasses: " << classCount << "\nRelações: " << relationsCount;
+        ss << "\nInstâncias: " << instanceCount << "\nEsteriótipos de classes: " << classStereotypesCount;
+        ss << "\nMeta atributos: " << metaAttributesCount << "\nTipos: " << typesCount;
+        ss << "\nNovos tipos: " << newTypesCount << "\nSimbolos especiais: " << specialSymbolsCount << "\n\n";
+        columnNumber = 1;
+        keyWordsCount = 0;
+        classCount = 0;
+        relationsCount = 0;
+        instanceCount = 0;
+        classStereotypesCount = 0;
+        relationsStereotypesCount = 0;
+        metaAttributesCount = 0;
+        typesCount = 0;
+        newTypesCount = 0;
+        specialSymbolsCount = 0;
 	}
 	while (!openFile && (currentFile < nFiles))
     {
@@ -100,7 +116,10 @@ void Parser::Start()
     
 
     ss << "-------------------------------\n";
-    ss << "Total de palavras reservadas: " << keyWordsCount << "\n";
+    ss << "Total de cada token:\nClasses: " << classCount << "\nRelações: " << relationsCount;
+    ss << "\nInstâncias: " << instanceCount << "\nEsteriótipos de classes: " << classStereotypesCount;
+    ss << "\nMeta atributos: " << metaAttributesCount << "\nTipos: " << typesCount;
+    ss << "\nNovos tipos: " << newTypesCount << "\nSimbolos especiais: " << specialSymbolsCount << "\n";
 
     std::ofstream file("../output.txt");
     if (!file.is_open()) {
