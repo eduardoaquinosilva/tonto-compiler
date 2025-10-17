@@ -56,11 +56,13 @@ functional-complexes         { columnNumber += yyleng; keyWordsCount++; return F
 "["                          { columnNumber += yyleng; specialSymbolsCount++; return LBRACKET; }
 "]"                          { columnNumber += yyleng; specialSymbolsCount++; return RBRACKET; }
 ".."                         { columnNumber += yyleng; specialSymbolsCount++; return DOTDOT; }
-"<>--"                       { columnNumber += yyleng; specialSymbolsCount++; return L_RELATION; }
-"--<>"                       { columnNumber += yyleng; specialSymbolsCount++; return R_RELATION; }
+"<>--"                       { columnNumber += yyleng; specialSymbolsCount++; return LRELATION; }
+"--<>"                       { columnNumber += yyleng; specialSymbolsCount++; return RRELATION; }
 "*"                          { columnNumber += yyleng; specialSymbolsCount++; return ASTHERISTICS; }
 "@"                          { columnNumber += yyleng; specialSymbolsCount++; return AT; }
 ":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
  /* fim Símbolos Especiais */
+[0-9][_A-Za-z0-9]*           { columnNumber += yyleng; return -1; }                    /* Token inválido */
+[_A-Za-z][_A-Za-z0-9]*       { columnNumber += yyleng; return -1; }                    /* Token inválido */
 .                            { columnNumber += yyleng; return -1; }                    /* Token Inválido */
 %%
