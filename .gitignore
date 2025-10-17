@@ -51,3 +51,6 @@ Thumbs.db
 # --- Dependency managers / configs ---
 *.depend
 *.d
+
+
+output.txt
