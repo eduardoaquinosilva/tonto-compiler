@@ -28,5 +28,8 @@ enum {
     CLASS_NAME,
 
     // Declaração de relação
-    RELATION_NAME
+    RELATION_NAME,
+
+    // Números
+    NUMBER
 };

@@ -12,6 +12,7 @@
     extern int typesCount;
     extern int newTypesCount;
     extern int specialSymbolsCount;
+    extern int numbersCount;
 %}
 
 %option yylineno
@@ -21,6 +22,7 @@ space [ ]
 whitespaces ({tab}|{space})+
 letter [A-Za-z]
 digit [0-9]
+number {digit}+(\.{digit}+)?(E[+-]?{digit}+)?
 classes_stereotypes (event|situation|process|category|mixin|phaseMixin|roleMixin|historicalRoleMixin|kind|collective|quantity|quality|mode|intrisicMode|extrinsicMode|subkind|phase|role|historicalRole)
 relations_stereotypes (material|derivation|comparative|mediation|characterization|externalDependence|componentOf|memberOf|subCollectionOf|subQualityOf|instantiation|termination|participational|participation|historicalDependence|creation|manifestation|bringsAbout|triggers|composition|aggregation|inherence|value|formal|constitution)
 type (number|string|boolean|date|time|datetime)
@@ -62,7 +64,9 @@ functional-complexes         { columnNumber += yyleng; keyWordsCount++; return F
 "@"                          { columnNumber += yyleng; specialSymbolsCount++; return AT; }
 ":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
  /* fim Símbolos Especiais */
-[0-9][_A-Za-z0-9]*           { columnNumber += yyleng; return -1; }                    /* Token inválido */
-[_A-Za-z][_A-Za-z0-9]*       { columnNumber += yyleng; return -1; }                    /* Token inválido */
-.                            { columnNumber += yyleng; return -1; }                    /* Token Inválido */
+{number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
+[-_A-Za-z0-9]*-[A-Za-z0-9_-]* { columnNumber += yyleng; return -1; }
+[0-9][_A-Za-z0-9]*            { columnNumber += yyleng; return -1; }                      /* Token inválido */
+[_A-Za-z][_A-Za-z0-9]*        { columnNumber += yyleng; return -1; }                      /* Token inválido */
+.                             { columnNumber += yyleng; return -1; }                      /* Token Inválido */
 %%

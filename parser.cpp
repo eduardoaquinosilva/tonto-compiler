@@ -16,6 +16,7 @@ int metaAttributesCount = 0;
 int typesCount = 0;
 int newTypesCount = 0;
 int specialSymbolsCount = 0;
+int numbersCount = 0;
 Counting tokenCounts;
 
 char **fileList = nullptr;
@@ -43,9 +44,9 @@ int yyFlexLexer::yywrap()
         ss << " | Instâncias: " << instanceCount << " | Esteriótipos de Classes: " << classStereotypesCount;
         ss << " | Esteriótipos de Relações: " << relationsStereotypesCount << " | Meta atributos: " << metaAttributesCount;
         ss << " | Tipos: " << typesCount << " | Novos tipos: " << newTypesCount << " | Simbolos especiais: ";
-        ss << specialSymbolsCount << "\n\n";
+        ss << specialSymbolsCount << " | Números: " << numbersCount << "\n\n";
 
-        tokenCounts.Add(classCount, relationsCount, keyWordsCount, instanceCount, classStereotypesCount, relationsStereotypesCount, metaAttributesCount, typesCount, newTypesCount, specialSymbolsCount);
+        tokenCounts.Add(classCount, relationsCount, keyWordsCount, instanceCount, classStereotypesCount, relationsStereotypesCount, metaAttributesCount, typesCount, newTypesCount, specialSymbolsCount, numbersCount);
         
         columnNumber = 1;
         keyWordsCount = 0;
@@ -58,6 +59,7 @@ int yyFlexLexer::yywrap()
         typesCount = 0;
         newTypesCount = 0;
         specialSymbolsCount = 0;
+        numbersCount = 0;
 	}
 
 	while (!openFile && (currentFile < nFiles)) {
@@ -124,6 +126,7 @@ void Parser::Start()
             case RRELATION: ss << "<RRELATION> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
             case ASTHERISTICS: ss << "<ASTHERISTICS> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
             case AT: ss << "<AT> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
+            case NUMBER: ss << "<NUMBER, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
             
             default: cout << "ERRO: " << scanner.YYText() << " não é um identificador válido (Linha " << scanner.lineno() << ", Coluna " << tokenStartColumn << ", Arquivo " << fileName << ")\n"; break;
         }
@@ -135,7 +138,8 @@ void Parser::Start()
     ss << tokenCounts.keyWordsCount << " | Instâncias: " << tokenCounts.instanceCount << " | Esteriótipos de Classes: ";
     ss << tokenCounts.classStereotypesCount << " | Esteriótipos de Relações: " << tokenCounts.relationsStereotypesCount;
     ss << " | Meta atributos: " << tokenCounts.metaAttributesCount << " | Tipos: " << tokenCounts.typesCount;
-    ss << " | Novos tipos: " << tokenCounts.newTypesCount << " | Simbolos especiais: " << tokenCounts.specialSymbolsCount << "\n";
+    ss << " | Novos tipos: " << tokenCounts.newTypesCount << " | Simbolos especiais: " << tokenCounts.specialSymbolsCount;
+    ss << " | Números: " << tokenCounts.numbersCount << "\n";
 
     std::ofstream file("../output.txt");
     if (!file.is_open()) {

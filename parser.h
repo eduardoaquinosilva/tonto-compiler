@@ -12,8 +12,9 @@ struct Counting {
 	int typesCount = 0;
 	int newTypesCount = 0;
 	int specialSymbolsCount = 0;
+	int numbersCount = 0;
 
-	void Add(int classCount, int relationsCount, int keywordsCount, int instanceCount, int classStereotypesCount, int relationsStereotypesCount, int metaAttributesCount, int typesCount, int newTypeCount, int specialSymbolsCount) {
+	void Add(int classCount, int relationsCount, int keywordsCount, int instanceCount, int classStereotypesCount, int relationsStereotypesCount, int metaAttributesCount, int typesCount, int newTypeCount, int specialSymbolsCount, int numbersCount) {
 		this->classCount += classCount;
 		this->relationsCount += relationsCount;
 		this->keyWordsCount += keywordsCount;
@@ -24,6 +25,7 @@ struct Counting {
 		this->typesCount += typesCount;
 		this->newTypesCount += newTypeCount;
 		this->specialSymbolsCount += specialSymbolsCount;
+		this->numbersCount += numbersCount;
 	}
 };
 
