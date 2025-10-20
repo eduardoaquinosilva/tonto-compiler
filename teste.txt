@@ -1,10 +1,13 @@
-package Car
+package CarOwnership
 
-A_asdasd
+kind Organization
+subkind CarAgency specializes Organization
+kind Car
 
-_asdasdasd
+relator CarOwnership {
+    @mediation
+    involvesOwner [1] CarAgency
 
-asdasdasd
-
-123abc
-@
+    @mediation
+    involvesProperty [1] Car
+}
