@@ -41,6 +41,8 @@ where                        { columnNumber += yyleng; keyWordsCount++; return W
 package                      { columnNumber += yyleng; keyWordsCount++; return PACKAGE; }
 import                       { columnNumber += yyleng; keyWordsCount++; return IMPORT; }
 functional-complexes         { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
+datatype                     { columnNumber += yyleng; keyWordsCount++; return DATATYPE; }
+specializes                  { columnNumber += yyleng; keyWordsCount++; return SPECIALIZES; }
  /* fim Palavras Reservadas */
 {classes_stereotypes}        { columnNumber += yyleng; classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
 {relations_stereotypes}      { columnNumber += yyleng; relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
