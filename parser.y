@@ -6,7 +6,7 @@ extern int yylex();
 extern int yyerror(const char *s);
 %}
 
-%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA
+%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA, DISJOINT, OVERLAPPING, COMPLETE, INCOMPLETE, GENSET, WHERE, GENERAL, SPECIFICS
 
 %%
 
@@ -37,6 +37,28 @@ enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
 enumTail : INSTANCE_NAME COMMA enumTail
          |
          ;
+
+generalizations : restrictionsHead restriction GENSET CLASS_NAME WHERE classListHead classListElement SPECIALIZES CLASS_NAME
+                | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME SPECIFICS classListHead classListElement RBRACE
+                ;
+
+restriction : DISJOINT
+            | OVERLAPPING
+            | COMPLETE
+            | INCOMPLETE
+            |
+            ;
+
+restrictionsHead : restrictionsHead restriction
+                 |
+                 ;
+
+classListElement : CLASS_NAME
+                 ;
+
+classListHead : classListHead COMMA classListElement
+              |
+              ;
 %%
 
 int yylex() {

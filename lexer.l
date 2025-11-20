@@ -49,6 +49,8 @@ meta (ordered|const|derived|subsets|redefines)
 genset                       { columnNumber += yyleng; keyWordsCount++; return GENSET; }
 disjoint                     { columnNumber += yyleng; keyWordsCount++; return DISJOINT; }
 complete                     { columnNumber += yyleng; keyWordsCount++; return COMPLETE; }
+incomplete                   { columnNumber += yyleng; keyWordsCount++; return INCOMPLETE; }
+overlapping                  { columnNumber += yyleng; keyWordsCount++; return OVERLAPPING; }
 general                      { columnNumber += yyleng; keyWordsCount++; return GENERAL; }
 specifics                    { columnNumber += yyleng; keyWordsCount++; return SPECIFICS; }
 where                        { columnNumber += yyleng; keyWordsCount++; return WHERE; }
