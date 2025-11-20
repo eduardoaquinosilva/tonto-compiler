@@ -13,9 +13,23 @@
     extern int newTypesCount;
     extern int specialSymbolsCount;
     extern int numbersCount;
+
+    int yycolumn = 1;
+    int tmpcolumn = 1;
+
+    #define YY_USER_ACTION \
+    yycolumn = tmpcolumn; \
+    for (int i = 0; i < yyleng; i++) { \
+        if (yytext[i] == '\n') \
+            tmpcolumn = 1; \
+        else \
+            tmpcolumn++; \
+    }
 %}
 
+%option c++
 %option yylineno
+
 endline [\n]
 tab [\t]
 space [ ]

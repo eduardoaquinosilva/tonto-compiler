@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "parser.h"
+#include "ast.h"
 #include "tokens.h"
 using namespace std;
 
@@ -27,7 +27,7 @@ string fileName = "";
 ifstream fin;
 stringstream ss;
 
-Parser::Parser(char** list, unsigned count) : lookahead(0) 
+Ast::Ast(char** list, unsigned count) : lookahead(0) 
 {
     ::fileList = list;
     ::nFiles = count;
@@ -80,7 +80,7 @@ int yyFlexLexer::yywrap()
 	return (openFile ? 0 : 1);	
 }
 
-void Parser::Start()
+void Ast::Start()
 {
     scanner.switch_streams(&fin);
 

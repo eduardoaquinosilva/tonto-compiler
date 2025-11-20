@@ -1,3 +1,6 @@
+#ifndef AST_H
+#define AST_H
+
 #include <FlexLexer.h>
 #include <fstream>
 
@@ -38,13 +41,15 @@ extern unsigned currentFile;
 extern bool openFile;
 extern std::ifstream fin;
 
-class Parser
+class Ast
 {
 private:
 	yyFlexLexer scanner;
 	int lookahead;
 	
 public:
-	Parser(char** fileList, unsigned nFiles);
+	Ast(char** fileList, unsigned nFiles);
 	void Start();
 };
+
+#endif
