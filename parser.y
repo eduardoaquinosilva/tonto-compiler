@@ -6,14 +6,13 @@ extern int yylex();
 extern int yyerror(const char *s);
 %}
 
-%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA, DISJOINT, OVERLAPPING, COMPLETE, INCOMPLETE, GENSET, WHERE, GENERAL, SPECIFICS
+%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA, DISJOINT, OVERLAPPING, COMPLETE, INCOMPLETE, GENSET, WHERE, GENERAL, SPECIFICS, RELATIONS_STEREOTYPE, LBRACKET, RBRACKET, LRELATION, MRELATION, RRELATION, DIGIT, DOTDOT, ASTHERISTICS, AT, RELATION
 
 %%
-
 package : PACKAGE CLASS_NAME
         ;
 
-class : classHead LBRACE attribute RBRACE
+class : classHead LBRACE attribute internalRelation RBRACE
       | SPECIALIZES CLASS_NAME
       ;
 
@@ -59,6 +58,31 @@ classListElement : CLASS_NAME
 classListHead : classListHead COMMA classListElement
               |
               ;
+
+internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME
+         |
+         ;
+
+externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStructure CLASS_NAME
+         ;
+
+cardinalityStructure : cardinality specialCardinalitySymbol cardinality
+                     ;
+
+cardinality : LBRACKET cardinalityContent RBRACKET
+            ;
+
+specialCardinalitySymbol : LRELATION
+                         | MRELATION
+                         | RRELATION
+                         ;
+
+cardinalityContent : DIGIT cardinalityContentTail
+                   ;
+
+cardinalityContentTail : DOTDOT ASTHERISTICS
+                       |
+                       ;
 %%
 
 int yylex() {

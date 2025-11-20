@@ -60,6 +60,7 @@ functional-complexes         { columnNumber += yyleng; keyWordsCount++; return F
 datatype                     { columnNumber += yyleng; keyWordsCount++; return DATATYPE; }
 specializes                  { columnNumber += yyleng; keyWordsCount++; return SPECIALIZES; }
 enum                         { columnNumber += yyleng; keyWordsCount++; return ENUM; }
+relation                     { columnNumber += yyleng; keyWordsCount++; return RELATION; }
  /* fim Palavras Reservadas */
 {classes_stereotypes}        { columnNumber += yyleng; classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
 {relations_stereotypes}      { columnNumber += yyleng; relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
@@ -79,12 +80,14 @@ enum                         { columnNumber += yyleng; keyWordsCount++; return E
 ".."                         { columnNumber += yyleng; specialSymbolsCount++; return DOTDOT; }
 "<>--"                       { columnNumber += yyleng; specialSymbolsCount++; return LRELATION; }
 "--<>"                       { columnNumber += yyleng; specialSymbolsCount++; return RRELATION; }
+"--"                         { columnNumber += yyleng; specialSymbolsCount++; return MRELATION; }
 "*"                          { columnNumber += yyleng; specialSymbolsCount++; return ASTHERISTICS; }
 "@"                          { columnNumber += yyleng; specialSymbolsCount++; return AT; }
 ":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
 ","                          { columnNumber += yyleng; specialSymbolsCount++; return COMMA; }
  /* fim Símbolos Especiais */
 {number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
+{digit}                       { columnNumber += yyleng; numbersCount++; return DIGIT; }   /* Números inteiros */
 [-_A-Za-z0-9]*-[A-Za-z0-9_-]* { columnNumber += yyleng; return -1; }
 [0-9][_A-Za-z0-9]*            { columnNumber += yyleng; return -1; }                      /* Token inválido */
 [_A-Za-z][_A-Za-z0-9]*        { columnNumber += yyleng; return -1; }                      /* Token inválido */
