@@ -6,7 +6,7 @@ extern int yylex();
 extern int yyerror(const char *s);
 %}
 
-%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, ATTRIBUTE_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META
+%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA
 
 %%
 
@@ -20,7 +20,7 @@ class : classHead LBRACE attribute RBRACE
 classHead : CLASS_STEREOTYPE CLASS_NAME
           ;
 
-attribute : ATTRIBUTE_NAME COLON TYPE attributeTail attribute
+attribute : RELATION_NAME COLON TYPE attributeTail attribute
           |
           ;
 
@@ -34,7 +34,7 @@ dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
 enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
      ;
 
-enumTail : INTANCE_NAME COMMA enumTail
+enumTail : INSTANCE_NAME COMMA enumTail
          |
          ;
 %%
