@@ -6,10 +6,26 @@ extern int yylex();
 extern int yyerror(const char *s);
 %}
 
+%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, ATTRIBUTE_NAME, COLON, TYPE, DATATYPE, NEW_TYPE
+
 %%
 
-input:
-    ;
+package : PACKAGE CLASS_NAME
+        ;
+
+class : classHead LBRACE attribute RBRACE
+      | SPECIALIZES CLASS_NAME
+      ;
+
+classHead : CLASS_STEREOTYPE CLASS_NAME
+          ;
+
+attribute : ATTRIBUTE_NAME COLON TYPE attribute
+          |
+          ;
+
+dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
+         ;
 
 %%
 
