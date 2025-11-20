@@ -57,6 +57,7 @@ import                       { columnNumber += yyleng; keyWordsCount++; return I
 functional-complexes         { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
 datatype                     { columnNumber += yyleng; keyWordsCount++; return DATATYPE; }
 specializes                  { columnNumber += yyleng; keyWordsCount++; return SPECIALIZES; }
+enum                         { columnNumber += yyleng; keyWordsCount++; return ENUM; }
  /* fim Palavras Reservadas */
 {classes_stereotypes}        { columnNumber += yyleng; classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
 {relations_stereotypes}      { columnNumber += yyleng; relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
@@ -79,6 +80,7 @@ specializes                  { columnNumber += yyleng; keyWordsCount++; return S
 "*"                          { columnNumber += yyleng; specialSymbolsCount++; return ASTHERISTICS; }
 "@"                          { columnNumber += yyleng; specialSymbolsCount++; return AT; }
 ":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
+","                          { columnNumber += yyleng; specialSymbolsCount++; return COMMA; }
  /* fim Símbolos Especiais */
 {number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
 [-_A-Za-z0-9]*-[A-Za-z0-9_-]* { columnNumber += yyleng; return -1; }

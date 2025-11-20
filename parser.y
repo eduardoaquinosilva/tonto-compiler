@@ -31,6 +31,12 @@ attributeTail : LBRACE META RBRACE
 dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
          ;
 
+enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
+     ;
+
+enumTail : INTANCE_NAME COMMA enumTail
+         |
+         ;
 %%
 
 int yylex() {
