@@ -1,3 +1,6 @@
+#ifndef TOKENS_H
+#define TOKENS_H
+
 // constantes para os tokens 
 enum {
     // Palavras reservadas
@@ -33,3 +36,4 @@ enum {
     // Números
     NUMBER, DIGIT
 };
+#endif

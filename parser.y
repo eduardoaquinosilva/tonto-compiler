@@ -1,15 +1,31 @@
 %{
 #include <stdio.h>
+#include <string>
+#include <cstring>
 #include <FlexLexer.h>
+#include "stats.h"
 
 extern int yylex();
 extern int yyerror(const char *s);
+
+SyntaxStats syntaxStats;
 %}
 
-%token PACKAGE, CLASS_NAME, LBRACE, RBRACE, SPECIALIZES, CLASS_STEREOTYPE, RELATION_NAME, COLON, TYPE, DATATYPE, NEW_TYPE, META ENUM, INSTANCE_NAME, COMMA, DISJOINT, OVERLAPPING, COMPLETE, INCOMPLETE, GENSET, WHERE, GENERAL, SPECIFICS, RELATIONS_STEREOTYPE, LBRACKET, RBRACKET, LRELATION, MRELATION, RRELATION, DIGIT, DOTDOT, ASTHERISTICS, AT, RELATION
+%union {
+    char* sval;
+    int ival;
+}
+
+%token <sval> PACKAGE CLASS_NAME
+
+%token LBRACE RBRACE SPECIALIZES CLASS_STEREOTYPE RELATION_NAME COLON TYPE DATATYPE NEW_TYPE META ENUM INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
 
 %%
 package : PACKAGE CLASS_NAME
+        {
+            syntaxStats.packageNames.push_back(std::string($2));
+            free($2);
+        }
         ;
 
 class : classHead LBRACE attribute internalRelation RBRACE
@@ -85,13 +101,25 @@ cardinalityContentTail : DOTDOT ASTHERISTICS
                        ;
 %%
 
-int yylex() {
-    static yyFlexLexer lexer; 
+static yyFlexLexer* currentScanner = nullptr;
 
-    return lexer.yylex(); 
+void setScanner(yyFlexLexer* scanner) {
+    currentScanner = scanner;
+}
+
+int yylex() {
+    if (!currentScanner) return 0;
+
+    int token = currentScanner->yylex();
+
+    if (token == PACKAGE || token == CLASS_NAME) {
+        yylval.sval = strdup(currentScanner->YYText());
+    }
+
+    return token;
 }
 
 int yyerror(const char *s) {
-    fprintf(stderr, "Error: %s\n", s);
+    fprintf(stderr, "Syntax Error: %s\n", s);
     return 0;
 }

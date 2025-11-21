@@ -2,8 +2,13 @@
 #include <fstream>
 #include <sstream>
 #include "ast.h"
-#include "tokens.h"
+#include "stats.h"
+// #include "tokens.h"
+
 using namespace std;
+
+extern void setScanner(yyFlexLexer* scanner); 
+extern int yyparse();
 
 int columnNumber = 1;
 int keyWordsCount = 0;
@@ -82,7 +87,7 @@ int yyFlexLexer::yywrap()
 
 void Ast::Start()
 {
-    scanner.switch_streams(&fin);
+    /* scanner.switch_streams(&fin);
 
     if (scanner.yywrap() == 1) {
         cout << "No input files provided or all files failed to open.\n";
@@ -150,5 +155,31 @@ void Ast::Start()
 
     file.close();
 
-    std::cout << "Data written to output.txt\n";
+    std::cout << "Data written to output.txt\n"; */
+
+    for (unsigned i = 0; i < ::nFiles; i++) {
+        std::ifstream fileInput(::fileList[i]);
+        
+        if (!fileInput.is_open()) {
+            std::cerr << "Could not open file: " << ::fileList[i] << "\n";
+            continue;
+        }
+
+        std::cout << "\033[32m[TontoCompiler] Building file: " << ::fileList[i] << "\033[m\n";
+
+        scanner.switch_streams(&fileInput, nullptr);
+        setScanner(&scanner);
+
+        // syntaxStats.clear();  // usar pra zerar tudo depois de cada arquivo, talvez
+
+        if (yyparse() == 0) {
+            std::cout << "Parse successful!\n";
+        } else {
+            std::cout << "Parse failed.\n";
+        }
+
+        fileInput.close();
+    }
+
+    syntaxStats.printReport();
 }

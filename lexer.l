@@ -1,6 +1,7 @@
 %{
     #include <iostream>
-    #include "tokens.h"
+    // #include "tokens.h"
+    #include "parser.h"
     extern int columnNumber;
     extern int keyWordsCount;
     extern int classCount;
