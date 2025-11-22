@@ -87,8 +87,8 @@ relation                     { columnNumber += yyleng; keyWordsCount++; return R
 ":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
 ","                          { columnNumber += yyleng; specialSymbolsCount++; return COMMA; }
  /* fim Símbolos Especiais */
-{number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
 {digit}                       { columnNumber += yyleng; numbersCount++; return DIGIT; }   /* Números inteiros */
+{number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
 [-_A-Za-z0-9]*-[A-Za-z0-9_-]* { columnNumber += yyleng; return -1; }
 [0-9][_A-Za-z0-9]*            { columnNumber += yyleng; return -1; }                      /* Token inválido */
 [_A-Za-z][_A-Za-z0-9]*        { columnNumber += yyleng; return -1; }                      /* Token inválido */

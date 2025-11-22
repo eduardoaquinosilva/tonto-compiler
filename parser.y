@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string>
 #include <cstring>
+#include <vector>
 #include <FlexLexer.h>
 #include "stats.h"
 
@@ -11,14 +12,22 @@ extern int yyerror(const char *s);
 SyntaxStats syntaxStats;
 %}
 
+%code requires {
+    #include <string>
+    #include <vector>
+}
+
 %union {
     char* sval;
     int ival;
+    std::vector<std::string>* listVal;
 }
 
 %token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES DATATYPE NEW_TYPE ENUM
 
 %token LBRACE RBRACE RELATION_NAME COLON TYPE META INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
+
+%type <listVal> classList
 
 %start program
 
@@ -45,15 +54,15 @@ package : PACKAGE CLASS_NAME
         }
         ;
 
-class : classHead LBRACE attribute internalRelation RBRACE
-      | SPECIALIZES CLASS_NAME
+class : CLASS_STEREOTYPE CLASS_NAME classTail
       {   
-        syntaxStats.classNames.push_back(std::string($2));
-        free($2);
+      syntaxStats.classNames.push_back(std::string($2));
+      free($2);
       }
       ;
 
-classHead : CLASS_STEREOTYPE CLASS_NAME
+classTail : LBRACE attribute internalRelation RBRACE
+          | SPECIALIZES CLASS_NAME
           {   
             syntaxStats.classNames.push_back(std::string($2));
             free($2);
@@ -87,8 +96,34 @@ enumTail : INSTANCE_NAME
          | 
          ;
 
-generalizations : restrictionsHead restriction GENSET CLASS_NAME WHERE classListHead classListElement SPECIALIZES CLASS_NAME
-                | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME SPECIFICS classListHead classListElement RBRACE
+opt_comma : COMMA 
+          | 
+          ;
+
+generalizations : restrictionsHead restriction GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
+                {
+                    GensetInfo info;
+                    info.name = std::string($4);
+                    info.parent = std::string($8);
+
+                    info.children = *($6);
+                    syntaxStats.gensets.push_back(info);
+
+                    delete $6;
+                    free($4); free($8);
+                }
+                | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
+                {
+                    GensetInfo info;
+                    info.name = std::string($2);
+                    info.parent = std::string($5);
+                    
+                    info.children = *($8);
+                    syntaxStats.gensets.push_back(info);
+
+                    delete $8;
+                    free($2); free($5);
+                }
                 ;
 
 restriction : DISJOINT
@@ -102,12 +137,18 @@ restrictionsHead : restrictionsHead restriction
                  |
                  ;
 
-classListElement : CLASS_NAME
-                 ;
-
-classListHead : classListHead COMMA classListElement
-              |
-              ;
+classList : CLASS_NAME
+          {
+              $$ = new std::vector<std::string>();
+              $$->push_back(std::string($1));
+              free($1);
+          }
+          | classList COMMA CLASS_NAME
+          {
+              $$ = $1;
+              $$->push_back(std::string($3));
+              free($3);
+          }
 
 internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME
          |

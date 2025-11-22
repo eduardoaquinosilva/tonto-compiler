@@ -11,3 +11,10 @@ datatype AddressDataType {
 }
 
 enum EyeColor { Blue1 , Green2 , Brown3, Black4 }
+
+disjoint complete genset PersonAgeGroup where Child, Adult specializes Person, People
+
+genset PersonAgeGroup {
+    general Person,
+    specifics Child, Teenager, Adult
+}
