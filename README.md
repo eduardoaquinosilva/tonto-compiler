@@ -11,8 +11,6 @@ O **tonto-compiler** é um projeto desenvolvido para a matéria de Compiladores 
 
 O analisador léxico, gerado com a ferramenta **Flex**, é a primeira fase do compilador. Ele é responsável por ler os arquivos de código-fonte em TONTO, identificar sequências de caracteres (lexemas) e convertê-las em uma série de *tokens*. Cada token representa uma unidade fundamental da linguagem.
 
-Ao final da análise, o programa gera um arquivo `output.txt` que lista todos os tokens encontrados, informando o tipo do token, seu valor (lexema), quantidade de tokens de cada tipo, número da linha e coluna.
-
 Os tokens são classificados nas seguintes categorias:
 
 - **Palavras Reservadas**: Identificadores com significado fixo na linguagem, como `package`, `import`, `genset`, etc.
@@ -25,11 +23,18 @@ Os tokens são classificados nas seguintes categorias:
 - **Símbolos Especiais**: Caracteres com função estrutural, como chaves `{ }`, parênteses `( )`, etc.
 - **Constantes Numéricas**: Números inteiros e de ponto flutuante, como `9`, `2.1`, `71`.
 
-Essa categorização é definida no arquivo `tokens.h` e utilizada pelo analisador para processar o código-fonte.
-
 ## 🏗️ Analisador Sintático
 
--- Em construção -- 2° unidade
+O analisador sintático, gerado com a ferramenta **Bison**, é a segunda fase do compilador. Ele recebe a sequência de *tokens* do analisador léxico e verifica se essa sequência forma uma estrutura gramaticalmente válida de acordo com as regras da linguagem TONTO. Sua principal função é construir uma representação da estrutura do código-fonte e validar a sintaxe.
+
+Ao final de uma análise bem-sucedida, o programa atualiza o arquivo `output.txt` com um **Relatório de Análise Sintática** (`Parsing Report`). Este relatório resume as principais estruturas de alto nível identificadas no código, como:
+
+- **Packages**: O contêiner principal do modelo.
+- **Classes**: As entidades fundamentais do modelo, incluindo seus estereótipos.
+- **Tipos de Dados**: Definições de novos tipos de dados estruturados.
+- **Enums**: Listas de valores nomeados.
+- **Conjuntos de Generalização (Generalization Sets)**: Estruturas que definem hierarquias de especialização/generalização entre classes.
+- **Relações**: Conexões entre classes, sejam elas internas ou externas, com seus respectivos estereótipos e cardinalidades.
 
 ## 🧠 Analisador Semântico
 
@@ -37,8 +42,9 @@ Essa categorização é definida no arquivo `tokens.h` e utilizada pelo analisad
 
 ## ⚡ Tecnologias Utilizadas
 
-- **Linguagem:** C++ - 13.3.0
+- **Linguagem:** C++ - 13.3.0*
 - **Analisador léxico:** Flex - 2.6.4
+- **Analisador Sintático:** Bison - 3.8.2
 - **Automatizador de compilação:** CMAKE - 3.28.3
 
 ## 🛠️ Instruções de Setup
@@ -70,31 +76,27 @@ make
 ## 📤 Exemplo de Saída
 
 ```
-Arquivo ../teste.txt:
-<PACKAGE> | Linha 1 | Coluna 1
-<CLASS_NAME, "CarOwnership"> | Linha 1 | Coluna 9
-<CLASS_STEREOTYPE, "kind"> | Linha 3 | Coluna 1
-<CLASS_NAME, "Organization"> | Linha 3 | Coluna 6
-<CLASS_STEREOTYPE, "subkind"> | Linha 4 | Coluna 1
-<CLASS_NAME, "CarAgency"> | Linha 4 | Coluna 9
-<RELATION_NAME, "specializes"> | Linha 4 | Coluna 19
-<CLASS_NAME, "Organization"> | Linha 4 | Coluna 31
-<CLASS_STEREOTYPE, "kind"> | Linha 5 | Coluna 1
-<CLASS_NAME, "Car"> | Linha 5 | Coluna 6
+--- Parsing Report ---
+Packages (2):
+  - Person
+  - Car
+Classes (2):
+  - Persona
+  - PersonaErros
+New Data Types (1):
+  - AddressDataType
+Enums (1):
+  - EyeColor
+Generalization Sets (2):
+  - Set Name: PersonAgeGroup
+    Parent: Person
+    Children: Child Adult 
+  - Set Name: PersonAgeGroup
+    Parent: Person
+    Children: Child Teenager Adult 
+Relations (3):
+  - [Internal] | Persona (<<componentOf>> has) -> Department
+  - [External] | EmploymentContract (<<mediation>>) -> Employee
+  - [Internal] | PersonaErros (<<componentOf>> has) -> Department
 
-...
-
-Quantidade de cada token identificados:
-Classes: 8 | Relações: 4 | Palavras Reservadas: 1 | Instâncias: 0 | Esteriótipos de Classes: 3 | Esteriótipos de Relações: 2 | Meta atributos: 0 | Tipos: 0 | Novos tipos: 0 | Simbolos especiais: 8
-
-Arquivo ../testeT.txt:
-<PACKAGE> | Linha 13 | Coluna 1
-<CLASS_NAME, "Car"> | Linha 13 | Coluna 9
-
-Quantidade de cada token identificados:
-Classes: 1 | Relações: 0 | Palavras Reservadas: 1 | Instâncias: 0 | Esteriótipos de Classes: 0 | Esteriótipos de Relações: 0 | Meta atributos: 0 | Tipos: 0 | Novos tipos: 0 | Simbolos especiais: 0
-
--------------------------------
-Total de cada token identificado:
-Classes: 9 | Relações: 4 | Palavras Reservadas: 2 | Instâncias: 0 | Esteriótipos de Classes: 3 | Esteriótipos de Relações: 2 | Meta atributos: 0 | Tipos: 0 | Novos tipos: 0 | Simbolos especiais: 8
 ```
