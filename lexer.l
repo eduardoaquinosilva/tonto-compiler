@@ -43,53 +43,57 @@ type (number|string|boolean|date|time|datetime|int)
 meta (ordered|const|derived|subsets|redefines)
 
 %%
-{endline}                    { columnNumber = 1; }
-{whitespaces}                { columnNumber += yyleng; }
+{endline}                      {}
+{whitespaces}                  {}
  /* inicio Palavras Reservadas */
-genset                       { columnNumber += yyleng; keyWordsCount++; return GENSET; }
-disjoint                     { columnNumber += yyleng; keyWordsCount++; return DISJOINT; }
-complete                     { columnNumber += yyleng; keyWordsCount++; return COMPLETE; }
-incomplete                   { columnNumber += yyleng; keyWordsCount++; return INCOMPLETE; }
-overlapping                  { columnNumber += yyleng; keyWordsCount++; return OVERLAPPING; }
-general                      { columnNumber += yyleng; keyWordsCount++; return GENERAL; }
-specifics                    { columnNumber += yyleng; keyWordsCount++; return SPECIFICS; }
-where                        { columnNumber += yyleng; keyWordsCount++; return WHERE; }
-package                      { columnNumber += yyleng; keyWordsCount++; return PACKAGE; }
-import                       { columnNumber += yyleng; keyWordsCount++; return IMPORT; }
-functional-complexes         { columnNumber += yyleng; keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
-datatype                     { columnNumber += yyleng; keyWordsCount++; return DATATYPE; }
-specializes                  { columnNumber += yyleng; keyWordsCount++; return SPECIALIZES; }
-enum                         { columnNumber += yyleng; keyWordsCount++; return ENUM; }
-relation                     { columnNumber += yyleng; keyWordsCount++; return RELATION; }
+genset                         { keyWordsCount++; return GENSET; }
+disjoint                       { keyWordsCount++; return DISJOINT; }
+complete                       { keyWordsCount++; return COMPLETE; }
+incomplete                     { keyWordsCount++; return INCOMPLETE; }
+overlapping                    { keyWordsCount++; return OVERLAPPING; }
+general                        { keyWordsCount++; return GENERAL; }
+specifics                      { keyWordsCount++; return SPECIFICS; }
+where                          { keyWordsCount++; return WHERE; }
+package                        { keyWordsCount++; return PACKAGE; }
+import                         { keyWordsCount++; return IMPORT; }
+functional-complexes           { keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
+datatype                       { keyWordsCount++; return DATATYPE; }
+specializes                    { keyWordsCount++; return SPECIALIZES; }
+enum                           { keyWordsCount++; return ENUM; }
+relation                       { keyWordsCount++; return RELATION; }
  /* fim Palavras Reservadas */
-{classes_stereotypes}        { columnNumber += yyleng; classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
-{relations_stereotypes}      { columnNumber += yyleng; relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
-{meta}                       { columnNumber += yyleng; metaAttributesCount++; return META; }                  /* Meta-atributos */
-{type}                       { columnNumber += yyleng; typesCount++; return TYPE; }                  /* Tipos de Dados Nativos */
-({letter})*DataType          { columnNumber += yyleng; newTypesCount++; return NEW_TYPE;}               /* Novos Tipos */
-({letter})[_A-Za-z]*{digit}+ { columnNumber += yyleng; instanceCount++; return INSTANCE_NAME;}          /* Convenção para Nomes de Instâncias */
-[A-Z]("_"|{letter})*         { columnNumber += yyleng; classCount++; return CLASS_NAME; }            /* Convenção para Nomes de Classes */
-[a-z]("_"|{letter})*         { columnNumber += yyleng; relationsCount++; return RELATION_NAME; }         /* Convenção para Nomes de Relações */
+{classes_stereotypes}          { classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
+{relations_stereotypes}        { relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
+{meta}                         { metaAttributesCount++; return META; }                  /* Meta-atributos */
+{type}                         { typesCount++; return TYPE; }                  /* Tipos de Dados Nativos */
+({letter})*DataType            { newTypesCount++; return NEW_TYPE;}               /* Novos Tipos */
+({letter})[_A-Za-z]*{digit}+   { instanceCount++; return INSTANCE_NAME;}          /* Convenção para Nomes de Instâncias */
+[A-Z]("_"|{letter})*           { classCount++; return CLASS_NAME; }            /* Convenção para Nomes de Classes */
+[a-z]("_"|{letter})*           { relationsCount++; return RELATION_NAME; }         /* Convenção para Nomes de Relações */
  /* inicio Símbolos Especiais */
-"{"                          { columnNumber += yyleng; specialSymbolsCount++; return LBRACE; }
-"}"                          { columnNumber += yyleng; specialSymbolsCount++; return RBRACE; }
-"("                          { columnNumber += yyleng; specialSymbolsCount++; return LP; }
-")"                          { columnNumber += yyleng; specialSymbolsCount++; return RP; }
-"["                          { columnNumber += yyleng; specialSymbolsCount++; return LBRACKET; }
-"]"                          { columnNumber += yyleng; specialSymbolsCount++; return RBRACKET; }
-".."                         { columnNumber += yyleng; specialSymbolsCount++; return DOTDOT; }
-"<>--"                       { columnNumber += yyleng; specialSymbolsCount++; return LRELATION; }
-"--<>"                       { columnNumber += yyleng; specialSymbolsCount++; return RRELATION; }
-"--"                         { columnNumber += yyleng; specialSymbolsCount++; return MRELATION; }
-"*"                          { columnNumber += yyleng; specialSymbolsCount++; return ASTHERISTICS; }
-"@"                          { columnNumber += yyleng; specialSymbolsCount++; return AT; }
-":"                          { columnNumber += yyleng; specialSymbolsCount++; return COLON; }
-","                          { columnNumber += yyleng; specialSymbolsCount++; return COMMA; }
+"{"                            { specialSymbolsCount++; return LBRACE; }
+"}"                            { specialSymbolsCount++; return RBRACE; }
+"("                            { specialSymbolsCount++; return LP; }
+")"                            { specialSymbolsCount++; return RP; }
+"["                            { specialSymbolsCount++; return LBRACKET; }
+"]"                            { specialSymbolsCount++; return RBRACKET; }
+".."                           { specialSymbolsCount++; return DOTDOT; }
+"<>--"                         { specialSymbolsCount++; return LRELATION; }
+"--<>"                         { specialSymbolsCount++; return RRELATION; }
+"--"                           { specialSymbolsCount++; return MRELATION; }
+"*"                            { specialSymbolsCount++; return ASTHERISTICS; }
+"@"                            { specialSymbolsCount++; return AT; }
+":"                            { specialSymbolsCount++; return COLON; }
+","                            { specialSymbolsCount++; return COMMA; }
  /* fim Símbolos Especiais */
-{digit}                       { columnNumber += yyleng; numbersCount++; return DIGIT; }   /* Números inteiros */
-{number}                      { columnNumber += yyleng; numbersCount++; return NUMBER; }  /* Números */
-[-_A-Za-z0-9]*-[A-Za-z0-9_-]* { columnNumber += yyleng; return -1; }
-[0-9][_A-Za-z0-9]*            { columnNumber += yyleng; return -1; }                      /* Token inválido */
-[_A-Za-z][_A-Za-z0-9]*        { columnNumber += yyleng; return -1; }                      /* Token inválido */
-.                             { columnNumber += yyleng; return -1; }                      /* Token Inválido */
+{digit}                        { numbersCount++; return DIGIT; }   /* Números inteiros */
+{number}                       { numbersCount++; return NUMBER; }  /* Números */
+[-_A-Za-z0-9]*-[A-Za-z0-9_-]*  { return -1; }
+[0-9][_A-Za-z0-9]*             { return -1; }                      /* Token inválido */
+[_A-Za-z][_A-Za-z0-9]*         { return -1; }                      /* Token inválido */
+.                              { return -1; }                      /* Token Inválido */
 %%
+
+int GetCurrentColumn() {
+    return yycolumn;
+}

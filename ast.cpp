@@ -10,6 +10,8 @@ using namespace std;
 extern void setScanner(yyFlexLexer* scanner); 
 extern int yyparse();
 
+extern bool errorOccurred;
+
 int columnNumber = 1;
 int keyWordsCount = 0;
 int classCount = 0;
@@ -170,17 +172,15 @@ void Ast::Start()
         scanner.switch_streams(&fileInput, nullptr);
         setScanner(&scanner);
 
-        // syntaxStats.clear();  // usar pra zerar tudo depois de cada arquivo, talvez
+        int parseResult = yyparse();
 
-        /* extern int yydebug;
-        yydebug = 1; */
-
-        if (yyparse() == 0) {
-            std::cout << "Parse successful!\n";
+        if (parseResult == 0 && !errorOccurred) {
+            std::cout << BOLD_GREEN << "Parse successful!" << COLOR_RESET << "\n";
         } else {
-            std::cout << "Parse failed.\n";
+            std::cout << BOLD_RED << "Parse failed!" << COLOR_RESET << "\n";
         }
 
+        errorOccurred = false;
         fileInput.close();
     }
 

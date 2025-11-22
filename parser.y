@@ -5,15 +5,18 @@
 #include <vector>
 #include <FlexLexer.h>
 #include "stats.h"
+#include "ast.h"
 
 extern int yylex();
 extern int yyerror(const char *s);
 
 SyntaxStats syntaxStats;
 std::string currentClassName = "";
+extern int GetCurrentColumn();
+bool errorOccurred = false;
 %}
 
-// %define parse.trace
+%define parse.error verbose
 
 %code requires {
     #include <string>
@@ -26,9 +29,9 @@ std::string currentClassName = "";
     std::vector<std::string>* listVal;
 }
 
-%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES DATATYPE NEW_TYPE ENUM RELATIONS_STEREOTYPE RELATION_NAME
+%token <sval> PACKAGE "package" CLASS_NAME "class name" CLASS_STEREOTYPE "class stereotype" SPECIALIZES "specializes" DATATYPE "datatype" NEW_TYPE "new dataype name" ENUM "enum" RELATIONS_STEREOTYPE "relation stereotype" RELATION_NAME "relation name"
 
-%token LBRACE RBRACE COLON TYPE META INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER UNKOWN
+%token LBRACE "{" RBRACE "}" COLON ":" TYPE "primitive data type" META "meta attributes" INSTANCE_NAME "instance name" COMMA "," DISJOINT "disjoint" OVERLAPPING "overlapping" COMPLETE "complete" INCOMPLETE "incomplete" GENSET "genset" WHERE "where" GENERAL "general" SPECIFICS "specifics" LBRACKET "[" RBRACKET "]" LRELATION "<>--" MRELATION "--" RRELATION "--<>" DIGIT "digit" DOTDOT ".." ASTHERISTICS "*" AT "@" RELATION "relation" IMPORT "import" FUNCTIONAL_COMPLEXES "functional-complexes" LP "(" RP ")" NUMBER "number" UNKOWN ""
 
 %type <listVal> classList
 %type <sval> cardinalityStructure
@@ -36,19 +39,20 @@ std::string currentClassName = "";
 %start program
 
 %%
-program : declarations
+program : package declarations
+        | error { yyerrok; } declarations
         ;
 
 declarations : declarations declaration
              | 
              ;
 
-declaration : package
-            | class
+declaration : class
             | dataType
             | enum
             | generalizations
             | externalRelation
+            | error { yyclearin; }
             ;
 
 package : PACKAGE CLASS_NAME
@@ -76,6 +80,7 @@ classTail : LBRACE attribute internalRelation RBRACE
             syntaxStats.classNames.push_back(std::string($2));
             free($2);
           }
+          | error RBRACE { yyerrok; }
           ;
 
 attribute : RELATION_NAME COLON TYPE attributeTail attribute
@@ -91,6 +96,11 @@ dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
             syntaxStats.dataTypeNames.push_back(std::string($2));
             free($2);
          }
+         | DATATYPE NEW_TYPE LBRACE error RBRACE
+         {
+            yyerrok;
+            free($2);
+         }
          ;
 
 enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
@@ -98,18 +108,23 @@ enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
         syntaxStats.enumNames.push_back(std::string($2));
         free($2);
      }
+     | ENUM CLASS_NAME LBRACE error RBRACE
+     {
+        yyerrok;
+        free($2);
+     }
      ;
 
 enumTail : INSTANCE_NAME
          | enumTail COMMA INSTANCE_NAME
-         | 
+         |
          ;
 
 opt_comma : COMMA 
           | 
           ;
 
-generalizations : restrictionsHead GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
+generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
                 {
                     GensetInfo info;
                     info.name = std::string($3);
@@ -120,6 +135,18 @@ generalizations : restrictionsHead GENSET CLASS_NAME WHERE classList SPECIALIZES
 
                     delete $5;
                     free($3); free($7);
+                }
+                | GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
+                {
+                    GensetInfo info;
+                    info.name = std::string($2);
+                    info.parent = std::string($6);
+                    
+                    info.children = *($4);
+                    syntaxStats.gensets.push_back(info);
+                    
+                    delete $4;
+                    free($2); free($6);
                 }
                 | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
                 {
@@ -133,6 +160,11 @@ generalizations : restrictionsHead GENSET CLASS_NAME WHERE classList SPECIALIZES
                     delete $8;
                     free($2); free($5);
                 }
+                | GENSET CLASS_NAME LBRACE error RBRACE
+                {
+                    yyerrok; 
+                    free($2);
+                }
                 ;
 
 restriction : DISJOINT
@@ -141,9 +173,10 @@ restriction : DISJOINT
             | INCOMPLETE
             ;
 
-restrictionsHead : restrictionsHead restriction {}
-                 | {}
-                 ;
+restrictionList : restriction
+                | restrictionList restriction
+                ;
+
 
 classList : CLASS_NAME
           {
@@ -187,14 +220,8 @@ externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStruct
                  }
                  ;
 
-cardinalityStructure : cardinality specialCardinalitySymbol cardinality
-                     {
-                        $$ = strdup("");
-                     }
-                     | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality
-                     {
-                        $$ = $3;
-                     }
+cardinalityStructure : cardinality specialCardinalitySymbol cardinality { $$ = strdup(""); }
+                     | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality { $$ = $3; }
                      ;
 
 cardinality : LBRACKET cardinalityContent RBRACKET
@@ -225,10 +252,7 @@ int yylex() {
     int token = currentScanner->yylex();
 
     if (token < 0) {
-        std::cerr << "Lexical Error: '" << currentScanner->YYText() << "'' is not a valid identifier at line " << currentScanner->lineno() << std::endl;
-
-        //std::cerr << "current line: " << currentScanner->yycolumn << std::endl;
-        // fprintf(stderr, "Lexical Error: Unexpected input '%s' at line %d\n", currentScanner->YYText(), currentScanner->lineno());
+        std::cerr << NORMAL_RED << "Lexical Error:" << BOLD_RED << " '" << currentScanner->YYText() << "'" << COLOR_RESET << " is not a " << BOLD_YELLOW << "valid identifier" << COLOR_RESET << " at line " << currentScanner->lineno() << ", column " << GetCurrentColumn() << std::endl;
         return UNKOWN;
     }
 
@@ -240,17 +264,72 @@ int yylex() {
 }
 
 int yyerror(const char *s) {
-    std::cerr << "Syntax Error: " << s;
+    errorOccurred = true;
+    std::string errorMessage = s;
 
     if (currentScanner) {
-        std::cerr << " at line " << currentScanner->lineno() << ", near token '" << currentScanner->YYText() << "'";
+        std::string lexeme = currentScanner->YYText();
+
+        if (!lexeme.empty() && errorMessage.find(lexeme) == std::string::npos) {
+            std::string anchor = "unexpected ";
+            size_t start = errorMessage.find(anchor);
+
+            if (start != std::string::npos) {
+                size_t tokenStart = start + anchor.length();
+                size_t insertPos = errorMessage.find(',', tokenStart);
+                
+                std::string insertion = " '" + lexeme + "'";
+                
+                if (insertPos == std::string::npos) {
+                    errorMessage += insertion; 
+                } else {
+                    errorMessage.insert(insertPos, insertion);
+                }
+            } else {
+                errorMessage += " '" + lexeme + "'";
+            }
+        }
+    }
+
+    size_t unexpectedPos = errorMessage.find("unexpected ");
+    size_t expectingPos = errorMessage.find("expecting ");
+    
+    size_t redStart = std::string::npos;
+    size_t redEnd = std::string::npos;
+    size_t yellowStart = std::string::npos;
+
+    if (unexpectedPos != std::string::npos) {
+        redStart = unexpectedPos + 11;
+        
+        size_t boundary = errorMessage.find(", expecting ", redStart);
+        
+        if (boundary != std::string::npos) {
+            redEnd = boundary;
+        } else {
+            redEnd = errorMessage.length();
+        }
+    }
+
+    if (expectingPos != std::string::npos) {
+        yellowStart = expectingPos + 10;
+    }
+
+    if (yellowStart != std::string::npos) {
+        errorMessage += COLOR_RESET;
+        errorMessage.insert(yellowStart, BOLD_YELLOW);
+    }
+
+    if (redStart != std::string::npos && redEnd != std::string::npos) {
+        errorMessage.insert(redEnd, COLOR_RESET);
+        errorMessage.insert(redStart, BOLD_RED);
+    }
+
+    std::cerr << NORMAL_RED << "Syntax Error: " << COLOR_RESET << errorMessage;
+    
+    if (currentScanner) {
+        std::cerr << " at line " << currentScanner->lineno() << ", column " << GetCurrentColumn();
     }
     
     std::cerr << std::endl;
-
-    /* fprintf(stderr, "Syntax Error: %s\n", s);
-    if (currentScanner) {
-        fprintf(stderr, "  at line %d, near token '%s'\n", currentScanner->lineno(), currentScanner->YYText());
-    } */
     return 0;
 }
