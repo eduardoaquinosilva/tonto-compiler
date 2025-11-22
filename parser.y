@@ -16,9 +16,9 @@ SyntaxStats syntaxStats;
     int ival;
 }
 
-%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES
+%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES DATATYPE NEW_TYPE ENUM
 
-%token LBRACE RBRACE RELATION_NAME COLON TYPE DATATYPE NEW_TYPE META ENUM INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
+%token LBRACE RBRACE RELATION_NAME COLON TYPE META INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
 
 %start program
 
@@ -34,6 +34,8 @@ declaration : package
             | class
             | dataType
             | enum
+            | generalizations
+            | externalRelation
             ;
 
 package : PACKAGE CLASS_NAME
@@ -67,13 +69,22 @@ attributeTail : LBRACE META RBRACE
               ;
 
 dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
+         {
+            syntaxStats.dataTypeNames.push_back(std::string($2));
+            free($2);
+         }
          ;
 
 enum : ENUM CLASS_NAME LBRACE enumTail RBRACE
+     {
+        syntaxStats.enumNames.push_back(std::string($2));
+        free($2);
+     }
      ;
 
-enumTail : INSTANCE_NAME COMMA enumTail
-         |
+enumTail : INSTANCE_NAME
+         | enumTail COMMA INSTANCE_NAME
+         | 
          ;
 
 generalizations : restrictionsHead restriction GENSET CLASS_NAME WHERE classListHead classListElement SPECIALIZES CLASS_NAME
@@ -135,7 +146,7 @@ int yylex() {
 
     int token = currentScanner->yylex();
 
-    if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES) {
+    if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES || token == DATATYPE || token == NEW_TYPE || token == ENUM) {
         yylval.sval = strdup(currentScanner->YYText());
     }
 

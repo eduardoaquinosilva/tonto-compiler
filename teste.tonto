@@ -4,3 +4,10 @@ kind Persona {
     name: string
     birthDate: date {const}
 }
+
+datatype AddressDataType {
+    street: string
+    numberOfHouse: int
+}
+
+enum EyeColor { Blue1 , Green2 , Brown3, Black4 }
