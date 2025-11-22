@@ -16,11 +16,12 @@ SyntaxStats syntaxStats;
     int ival;
 }
 
-%token <sval> PACKAGE CLASS_NAME
+%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES
 
-%token LBRACE RBRACE SPECIALIZES CLASS_STEREOTYPE RELATION_NAME COLON TYPE DATATYPE NEW_TYPE META ENUM INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
+%token LBRACE RBRACE RELATION_NAME COLON TYPE DATATYPE NEW_TYPE META ENUM INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
 
 %%
+
 package : PACKAGE CLASS_NAME
         {
             syntaxStats.packageNames.push_back(std::string($2));
@@ -30,9 +31,17 @@ package : PACKAGE CLASS_NAME
 
 class : classHead LBRACE attribute internalRelation RBRACE
       | SPECIALIZES CLASS_NAME
+      {   
+        syntaxStats.classNames.push_back(std::string($2));
+        free($2);
+      }
       ;
 
 classHead : CLASS_STEREOTYPE CLASS_NAME
+          {   
+            syntaxStats.classNames.push_back(std::string($2));
+            free($2);
+          }
           ;
 
 attribute : RELATION_NAME COLON TYPE attributeTail attribute
@@ -112,7 +121,7 @@ int yylex() {
 
     int token = currentScanner->yylex();
 
-    if (token == PACKAGE || token == CLASS_NAME) {
+    if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES) {
         yylval.sval = strdup(currentScanner->YYText());
     }
 
@@ -121,5 +130,10 @@ int yylex() {
 
 int yyerror(const char *s) {
     fprintf(stderr, "Syntax Error: %s\n", s);
+    if (currentScanner) {
+        fprintf(stderr, "  at line %d, near token '%s'\n",
+                currentScanner->lineno(), 
+                currentScanner->YYText());
+    }
     return 0;
 }
