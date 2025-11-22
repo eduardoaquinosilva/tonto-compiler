@@ -20,7 +20,21 @@ SyntaxStats syntaxStats;
 
 %token LBRACE RBRACE RELATION_NAME COLON TYPE DATATYPE NEW_TYPE META ENUM INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
 
+%start program
+
 %%
+program : declarations
+        ;
+
+declarations : declarations declaration
+             | 
+             ;
+
+declaration : package
+            | class
+            | dataType
+            | enum
+            ;
 
 package : PACKAGE CLASS_NAME
         {
