@@ -3,6 +3,8 @@ package Person
 kind Persona {
     name: string
     birthDate: date {const}
+
+    @componentOf [1] <>-- has -- [1..*] Department
 }
 
 datatype AddressDataType {
@@ -12,9 +14,11 @@ datatype AddressDataType {
 
 enum EyeColor { Blue1 , Green2 , Brown3, Black4 }
 
-disjoint complete genset PersonAgeGroup where Child, Adult specializes Person, People
+disjoint complete genset PersonAgeGroup where Child, Adult specializes Person
 
 genset PersonAgeGroup {
     general Person,
     specifics Child, Teenager, Adult
 }
+
+@mediation relation EmploymentContract [1..*] -- [1] Employee

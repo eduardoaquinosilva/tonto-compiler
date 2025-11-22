@@ -10,7 +10,10 @@ extern int yylex();
 extern int yyerror(const char *s);
 
 SyntaxStats syntaxStats;
+std::string currentClassName = "";
 %}
+
+// %define parse.trace
 
 %code requires {
     #include <string>
@@ -23,11 +26,12 @@ SyntaxStats syntaxStats;
     std::vector<std::string>* listVal;
 }
 
-%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES DATATYPE NEW_TYPE ENUM
+%token <sval> PACKAGE CLASS_NAME CLASS_STEREOTYPE SPECIALIZES DATATYPE NEW_TYPE ENUM RELATIONS_STEREOTYPE RELATION_NAME
 
-%token LBRACE RBRACE RELATION_NAME COLON TYPE META INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS RELATIONS_STEREOTYPE LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER
+%token LBRACE RBRACE COLON TYPE META INSTANCE_NAME COMMA DISJOINT OVERLAPPING COMPLETE INCOMPLETE GENSET WHERE GENERAL SPECIFICS LBRACKET RBRACKET LRELATION MRELATION RRELATION DIGIT DOTDOT ASTHERISTICS AT RELATION IMPORT FUNCTIONAL_COMPLEXES LP RP NUMBER UNKOWN
 
 %type <listVal> classList
+%type <sval> cardinalityStructure
 
 %start program
 
@@ -54,16 +58,21 @@ package : PACKAGE CLASS_NAME
         }
         ;
 
-class : CLASS_STEREOTYPE CLASS_NAME classTail
-      {   
-      syntaxStats.classNames.push_back(std::string($2));
-      free($2);
-      }
+class : classHead classTail
       ;
+
+classHead : CLASS_STEREOTYPE CLASS_NAME
+          {
+            currentClassName = std::string($2);
+
+            syntaxStats.classNames.push_back(std::string($2));
+            free($2); free($1);
+          }
+          ;
 
 classTail : LBRACE attribute internalRelation RBRACE
           | SPECIALIZES CLASS_NAME
-          {   
+          {
             syntaxStats.classNames.push_back(std::string($2));
             free($2);
           }
@@ -100,17 +109,17 @@ opt_comma : COMMA
           | 
           ;
 
-generalizations : restrictionsHead restriction GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
+generalizations : restrictionsHead GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
                 {
                     GensetInfo info;
-                    info.name = std::string($4);
-                    info.parent = std::string($8);
+                    info.name = std::string($3);
+                    info.parent = std::string($7);
 
-                    info.children = *($6);
+                    info.children = *($5);
                     syntaxStats.gensets.push_back(info);
 
-                    delete $6;
-                    free($4); free($8);
+                    delete $5;
+                    free($3); free($7);
                 }
                 | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
                 {
@@ -130,11 +139,10 @@ restriction : DISJOINT
             | OVERLAPPING
             | COMPLETE
             | INCOMPLETE
-            |
             ;
 
-restrictionsHead : restrictionsHead restriction
-                 |
+restrictionsHead : restrictionsHead restriction {}
+                 | {}
                  ;
 
 classList : CLASS_NAME
@@ -151,13 +159,42 @@ classList : CLASS_NAME
           }
 
 internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME
-         |
-         ;
+                 {
+                    RelationInfo info;
+                    info.type = "Internal";
+                    info.stereotype = std::string($2);
+                    info.source = currentClassName;
+                    info.target = std::string($4);
+                    info.name = std::string($3);
+
+                    syntaxStats.relations.push_back(info);
+                    free($2); free($3); free($4);
+                 }
+                 |
+                 ;
 
 externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStructure CLASS_NAME
-         ;
+                 {
+                    RelationInfo info;
+                    info.type = "External";
+                    info.stereotype = std::string($2);
+                    info.source = std::string($4); 
+                    info.name = std::string($5);
+                    info.target = std::string($6);
+
+                    syntaxStats.relations.push_back(info);
+                    free($2); free($4); free($5); free($6);
+                 }
+                 ;
 
 cardinalityStructure : cardinality specialCardinalitySymbol cardinality
+                     {
+                        $$ = strdup("");
+                     }
+                     | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality
+                     {
+                        $$ = $3;
+                     }
                      ;
 
 cardinality : LBRACKET cardinalityContent RBRACKET
@@ -187,7 +224,15 @@ int yylex() {
 
     int token = currentScanner->yylex();
 
-    if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES || token == DATATYPE || token == NEW_TYPE || token == ENUM) {
+    if (token < 0) {
+        std::cerr << "Lexical Error: '" << currentScanner->YYText() << "'' is not a valid identifier at line " << currentScanner->lineno() << std::endl;
+
+        //std::cerr << "current line: " << currentScanner->yycolumn << std::endl;
+        // fprintf(stderr, "Lexical Error: Unexpected input '%s' at line %d\n", currentScanner->YYText(), currentScanner->lineno());
+        return UNKOWN;
+    }
+
+    if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES || token == DATATYPE || token == NEW_TYPE || token == ENUM || token == RELATIONS_STEREOTYPE || token == RELATION_NAME) {
         yylval.sval = strdup(currentScanner->YYText());
     }
 
@@ -195,11 +240,17 @@ int yylex() {
 }
 
 int yyerror(const char *s) {
-    fprintf(stderr, "Syntax Error: %s\n", s);
+    std::cerr << "Syntax Error: " << s;
+
     if (currentScanner) {
-        fprintf(stderr, "  at line %d, near token '%s'\n",
-                currentScanner->lineno(), 
-                currentScanner->YYText());
+        std::cerr << " at line " << currentScanner->lineno() << ", near token '" << currentScanner->YYText() << "'";
     }
+    
+    std::cerr << std::endl;
+
+    /* fprintf(stderr, "Syntax Error: %s\n", s);
+    if (currentScanner) {
+        fprintf(stderr, "  at line %d, near token '%s'\n", currentScanner->lineno(), currentScanner->YYText());
+    } */
     return 0;
 }

@@ -165,12 +165,15 @@ void Ast::Start()
             continue;
         }
 
-        std::cout << "\033[32m[TontoCompiler] Building file: " << ::fileList[i] << "\033[m\n";
+        std::cout << "\n\033[32m[TontoCompiler] Building file: " << ::fileList[i] << "\033[m\n";
 
         scanner.switch_streams(&fileInput, nullptr);
         setScanner(&scanner);
 
         // syntaxStats.clear();  // usar pra zerar tudo depois de cada arquivo, talvez
+
+        /* extern int yydebug;
+        yydebug = 1; */
 
         if (yyparse() == 0) {
             std::cout << "Parse successful!\n";
