@@ -2,6 +2,8 @@
 #define STATS_H
 
 #include <string>
+#include <fstream>
+#include <sstream>
 #include <vector>
 #include <iostream>
 
@@ -28,35 +30,45 @@ struct SyntaxStats {
     std::vector<RelationInfo> relations;
 
     void printReport() {
-        std::cout << "\n--- Parsing Report ---\n";
+        std::stringstream ss;
+        ss << "\n--- Parsing Report ---\n";
         
-        std::cout << "Packages (" << packageNames.size() << "):\n";
-        for (const auto& name : packageNames) std::cout << "  - " << name << "\n";
+        ss << "Packages (" << packageNames.size() << "):\n";
+        for (const auto& name : packageNames) ss << "  - " << name << "\n";
         
-        std::cout << "Classes (" << classNames.size() << "):\n";
-        for (const auto& name : classNames) std::cout << "  - " << name << "\n";
+        ss << "Classes (" << classNames.size() << "):\n";
+        for (const auto& name : classNames) ss << "  - " << name << "\n";
         
-        std::cout << "New Data Types (" << dataTypeNames.size() << "):\n";
-        for (const auto& name : dataTypeNames) std::cout << "  - " << name << "\n";
+        ss << "New Data Types (" << dataTypeNames.size() << "):\n";
+        for (const auto& name : dataTypeNames) ss << "  - " << name << "\n";
         
-        std::cout << "Enums (" << enumNames.size() << "):\n";
-        for (const auto& name : enumNames) std::cout << "  - " << name << "\n";
+        ss << "Enums (" << enumNames.size() << "):\n";
+        for (const auto& name : enumNames) ss << "  - " << name << "\n";
 
-        std::cout << "Generalization Sets (" << gensets.size() << "):\n";
+        ss << "Generalization Sets (" << gensets.size() << "):\n";
         for (const auto& gs : gensets) {
-            std::cout << "  - Set Name: " << gs.name << "\n";
-            std::cout << "    Parent: " << gs.parent << "\n";
-            std::cout << "    Children: ";
-            for(const auto& child : gs.children) std::cout << child << " ";
-            std::cout << "\n";
+            ss << "  - Set Name: " << gs.name << "\n";
+            ss << "    Parent: " << gs.parent << "\n";
+            ss << "    Children: ";
+            for(const auto& child : gs.children) ss << child << " ";
+            ss << "\n";
         }
 
-        std::cout << "Relations (" << relations.size() << "):\n";
+        ss << "Relations (" << relations.size() << "):\n";
         for (const auto& r : relations) {
-            std::cout << "  - [" << r.type << "]";
-            std::cout << " | " << r.source << " (<<" << r.stereotype << ">>";
-            if (!r.name.empty()) std::cout << " " << r.name;
-            std::cout << ") -> " << r.target << "\n";
+            ss << "  - [" << r.type << "]";
+            ss << " | " << r.source << " (<<" << r.stereotype << ">>";
+            if (!r.name.empty()) ss << " " << r.name;
+            ss << ") -> " << r.target << "\n";
+        }
+
+        std::ofstream outFile("output.txt");
+        if (outFile.is_open()) {
+            outFile << ss.str();
+            outFile.close();
+            std::cout << "Report written to output.txt\n";
+        } else {
+            std::cerr << "Error: Could not open output.txt for writing.\n";
         }
     }
 
