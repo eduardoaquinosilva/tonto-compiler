@@ -83,12 +83,16 @@ classTail : LBRACE attribute internalRelation RBRACE
           | error RBRACE { yyerrok; }
           ;
 
-attribute : RELATION_NAME COLON TYPE attributeTail attribute
+attribute : RELATION_NAME COLON attributeType attributeTail attribute
           |
           ;
 
 attributeTail : LBRACE META RBRACE
               |
+              ;
+
+attributeType : TYPE
+              | NEW_TYPE
               ;
 
 dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE

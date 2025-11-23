@@ -1,15 +1,17 @@
 package Person
 
-kind Persona {
-    name: string
-    birthDate: date {const}
-
-    @componentOf [1] <>-- has -- [1..*] Department
-}
 
 datatype AddressDataType {
     street: string
     numberOfHouse: int
+}
+
+kind Persona {
+    name: string
+    birthDate: date {const}
+    adress: AddressDataType
+
+    @componentOf [1] <>-- has -- [1..*] Department
 }
 
 enum EyeColor { Blue1 , Green2 , Brown3, Black4 }
