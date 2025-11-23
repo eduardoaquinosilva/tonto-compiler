@@ -80,6 +80,7 @@ classTail : LBRACE attribute internalRelation RBRACE
             syntaxStats.classNames.push_back(std::string($2));
             free($2);
           }
+          |
           | error RBRACE { yyerrok; }
           ;
 
@@ -152,6 +153,18 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                     delete $4;
                     free($2); free($6);
                 }
+                | restrictionList GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
+                {
+                    GensetInfo info;
+                    info.name = std::string($3);
+                    info.parent = std::string($6);
+
+                    info.children = *($9);
+                    syntaxStats.gensets.push_back(info);
+                    
+                    delete $9;
+                    free($3); free($6);
+                }
                 | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
                 {
                     GensetInfo info;
@@ -195,7 +208,7 @@ classList : CLASS_NAME
               free($3);
           }
 
-internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME
+internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME internalRelation
                  {
                     RelationInfo info;
                     info.type = "Internal";
@@ -226,6 +239,8 @@ externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStruct
 
 cardinalityStructure : cardinality specialCardinalitySymbol cardinality { $$ = strdup(""); }
                      | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality { $$ = $3; }
+                     | specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality { $$ = $2; }
+                     | specialCardinalitySymbol cardinality { $$ = strdup(""); }
                      ;
 
 cardinality : LBRACKET cardinalityContent RBRACKET

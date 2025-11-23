@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include "ast.h"
 
 struct GensetInfo {
     std::string name;
@@ -66,9 +67,9 @@ struct SyntaxStats {
         if (outFile.is_open()) {
             outFile << ss.str();
             outFile.close();
-            std::cout << "Report written to output.txt\n";
+            std::cout << '\n' << BOLD_PURPLE << "Report written to output.txt" << COLOR_RESET << '\n';
         } else {
-            std::cerr << "Error: Could not open output.txt for writing.\n";
+            std::cerr << '\n' << BOLD_RED << "Error: Could not open output.txt for writing." << COLOR_RESET << '\n';
         }
     }
 

@@ -6,6 +6,7 @@
 #define NORMAL_RED   "\033[31m"
 #define BOLD_RED     "\033[1;31m"
 #define BOLD_YELLOW  "\033[1;33m"
+#define BOLD_PURPLE  "\033[1;35m"
 
 #include <FlexLexer.h>
 #include <fstream>

@@ -1,8 +1,0 @@
-package Car
-
-kind PersonaErros {
-    name: string
-    birthDate: date {const}
-
-    @componentOf [1] <>-- has -- [1..*] Department
-}

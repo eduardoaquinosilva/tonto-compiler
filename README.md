@@ -69,7 +69,7 @@ make
 
 # caso deseje alterar os arquivos de testes somente substituir os arquivos de exemplo
 # ou colocar na linha de comando colocando arquivo pasta tonto-compiler
-./tonto-compiler ../teste.tonto ../testeT.txt
+./tonto-compiler ../teste.tonto ../Car.tonto
 # para funcionar da maneira informada é necessário estar na pasta Build anteriormente criada
 ```
 

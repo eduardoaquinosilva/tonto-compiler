@@ -10,6 +10,8 @@ using namespace std;
 extern void setScanner(yyFlexLexer* scanner); 
 extern int yyparse();
 
+extern void ResetCounters();
+
 extern bool errorOccurred;
 
 int columnNumber = 1;
@@ -89,89 +91,21 @@ int yyFlexLexer::yywrap()
 
 void Ast::Start()
 {
-    /* scanner.switch_streams(&fin);
-
-    if (scanner.yywrap() == 1) {
-        cout << "No input files provided or all files failed to open.\n";
-        return;
-    }
-
-    // enquanto não atingir o fim da entrada
-    while ((lookahead = scanner.yylex()) != 0) {
-        int tokenStartColumn = columnNumber - scanner.YYLeng();
-
-        // trata o token recebido do analisador léxico
-        switch (lookahead) {
-            case GENSET: ss << "<GENSET> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case DISJOINT: ss << "<DISJOINT> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case COMPLETE: ss << "<COMPLETE> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case GENERAL: ss << "<GENERAL> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case SPECIFICS: ss << "<SPECIFICS> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case WHERE: ss << "<WHERE> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case PACKAGE: ss << "<PACKAGE> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case IMPORT: ss << "<IMPORT> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case FUNCTIONAL_COMPLEXES: ss << "<FUNCTIONAL_COMPLEXES> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-
-            case CLASS_STEREOTYPE: ss << "<CLASS_STEREOTYPE, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RELATIONS_STEREOTYPE: ss << "<RELATIONS_STEREOTYPE, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case META: ss << "<META, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case TYPE: ss << "<TYPE, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case NEW_TYPE: ss << "<NEW_TYPE, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case INSTANCE_NAME: ss << "<INSTANCE_NAME, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case CLASS_NAME: ss << "<CLASS_NAME, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RELATION_NAME: ss << "<RELATION_NAME, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-
-            case LBRACE: ss << "<LBRACE> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RBRACE: ss << "<RBRACE> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case LBRACKET: ss << "<LBRACKET> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RBRACKET: ss << "<RBRACKET> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case LP: ss << "<LP> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RP: ss << "<RP> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case COLON: ss << "<COLON> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case DOTDOT: ss << "<DOTDOT> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case LRELATION: ss << "<LRELATION> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case RRELATION: ss << "<RRELATION> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case ASTHERISTICS: ss << "<ASTHERISTICS> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case AT: ss << "<AT> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            case NUMBER: ss << "<NUMBER, \"" << scanner.YYText() << "\"> | Linha " << scanner.lineno() << " | Coluna " << tokenStartColumn << "\n"; break;
-            
-            default: cout << "ERRO: " << scanner.YYText() << " não é um identificador válido (Linha " << scanner.lineno() << ", Coluna " << tokenStartColumn << ", Arquivo " << fileName << ")\n"; break;
-        }
-    }
-
-    ss << "-------------------------------\n";
-    ss << "Total de cada token identificado:\n";
-    ss << "Classes: " << tokenCounts.classCount << " | Relações: " << tokenCounts.relationsCount << " | Palavras Reservadas: ";
-    ss << tokenCounts.keyWordsCount << " | Instâncias: " << tokenCounts.instanceCount << " | Esteriótipos de Classes: ";
-    ss << tokenCounts.classStereotypesCount << " | Esteriótipos de Relações: " << tokenCounts.relationsStereotypesCount;
-    ss << " | Meta atributos: " << tokenCounts.metaAttributesCount << " | Tipos: " << tokenCounts.typesCount;
-    ss << " | Novos tipos: " << tokenCounts.newTypesCount << " | Simbolos especiais: " << tokenCounts.specialSymbolsCount;
-    ss << " | Números: " << tokenCounts.numbersCount << "\n";
-
-    std::ofstream file("../output.txt");
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file.\n";
-    }
-
-    file << ss.str();
-
-    file.close();
-
-    std::cout << "Data written to output.txt\n"; */
-
     for (unsigned i = 0; i < ::nFiles; i++) {
         std::ifstream fileInput(::fileList[i]);
         
         if (!fileInput.is_open()) {
-            std::cerr << "Could not open file: " << ::fileList[i] << "\n";
+            std::cerr << BOLD_RED << "Could not open file: " << ::fileList[i] << COLOR_RESET << '\n';
             continue;
         }
 
         std::cout << "\n\033[32m[TontoCompiler] Building file: " << ::fileList[i] << "\033[m\n";
 
-        scanner.switch_streams(&fileInput, nullptr);
-        setScanner(&scanner);
-
+        yyFlexLexer localScanner;
+        ResetCounters();
+        localScanner.switch_streams(&fileInput, nullptr);
+        setScanner(&localScanner);
+        
         int parseResult = yyparse();
 
         if (parseResult == 0 && !errorOccurred) {
