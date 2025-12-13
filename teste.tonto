@@ -5,7 +5,7 @@ datatype AddressDataType {
     numberOfHouse: int
 }
 
-kind Persona {
+kind 0Persona {
     name: string
     birthDate: date {const}
     adress: AddressDataType
@@ -13,13 +13,13 @@ kind Persona {
     @componentOf [1] <>-- has -- [1..*] Department
 }
 
-enum EyeColor { Blue1 , Green2 , Brown3, Black4 }
+enum EyeColor { Blue1 Green2 , Brown3, Black4 }
 
-disjoint complete genset PersonAgeGroup where Child, Adult specializes Person
+disjoint complete genet PersonAgeGroup where Child, Adult specializes Person
 
 genset PersonAgeGroup {
     general Person
-    specifics Child, Teenager, Adult
+     Child, Teenager, Adult
 }
 
 @mediation relation EmploymentContract [1..*] -- [1] Employee

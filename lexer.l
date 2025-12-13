@@ -41,10 +41,12 @@ classes_stereotypes (event|situation|process|category|mixin|phaseMixin|roleMixin
 relations_stereotypes (material|derivation|comparative|mediation|characterization|externalDependence|componentOf|memberOf|subCollectionOf|subQualityOf|instantiation|termination|participational|participation|historicalDependence|creation|manifestation|bringsAbout|triggers|composition|aggregation|inherence|value|formal|constitution)
 type (number|string|boolean|date|time|datetime|int)
 meta (ordered|const|derived|subsets|redefines)
+inline_comment "//".*
 
 %%
 {endline}                      {}
 {whitespaces}                  {}
+{inline_comment}               {}
  /* inicio Palavras Reservadas */
 genset                         { keyWordsCount++; return GENSET; }
 disjoint                       { keyWordsCount++; return DISJOINT; }
@@ -89,8 +91,8 @@ relation                       { keyWordsCount++; return RELATION; }
 {digit}                        { numbersCount++; return DIGIT; }   /* Números inteiros */
 {number}                       { numbersCount++; return NUMBER; }  /* Números */
 [-_A-Za-z0-9]*-[A-Za-z0-9_-]*  { return -1; }
-[0-9][_A-Za-z0-9]*             { return -1; }                      /* Token inválido */
-[_A-Za-z][_A-Za-z0-9]*         { return -1; }                      /* Token inválido */
+[0-9]+[_a-zA-Z][a-zA-Z0-9_]*   { return -1; }                      /* Token inválido */
+[a-zA-Z0-9_]+                  { return -1; }                      /* Token inválido */
 .                              { return -1; }                      /* Token Inválido */
 %%
 
