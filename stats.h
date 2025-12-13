@@ -8,12 +8,22 @@
 #include <iostream>
 #include "ast.h"
 
+struct Output {
+    std::string patternName;
+    std::string element;
+    std::string status;
+};
+
 struct GensetNode {
     std::string name;
     std::string parent;
     std::vector<std::string> children;
     bool isDisjoint = false;
     bool isComplete = false;
+
+    std::string fileName;
+    int line = 0;
+    int column = 0;
 };
 
 struct RelationNode {
@@ -28,6 +38,11 @@ struct ClassNode {
     std::string name;
     std::string stereotype;
     std::vector<std::string> parents;
+    std::string packageName;
+
+    std::string fileName;
+    int line = 0;
+    int column = 0;
 };
 
 struct SyntaxStats {
@@ -37,6 +52,7 @@ struct SyntaxStats {
     std::vector<std::string> enumNames;
     std::vector<GensetNode> gensets;
     std::vector<RelationNode> relations;
+    std::vector<Output> identifiedPatterns;
 
     void printReport() {
         std::stringstream ss;
@@ -82,6 +98,15 @@ struct SyntaxStats {
             ss << " | " << r.source << " (<<" << r.stereotype << ">>";
             if (!r.name.empty()) ss << " " << r.name;
             ss << ") -> " << r.target << "\n";
+        }
+
+        ss << "\n--- Semantic Report ---\n";
+        if (identifiedPatterns.empty()) {
+            ss << "Nenhum padrao de projeto identificado.\n";
+        } else {
+            for (const auto& log : identifiedPatterns) {
+                ss << "  - [" << log.patternName << "] em " << log.element << " -> Status: " << log.status << "\n";
+            }
         }
 
         std::ofstream outFile("output.txt");

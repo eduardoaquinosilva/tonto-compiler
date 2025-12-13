@@ -12,8 +12,11 @@ extern int yyerror(const char *s);
 
 SyntaxStats syntaxStats;
 std::string currentClassName = "";
+std::string currentPackageName = "";
+extern std::string currentFileName;
 extern int GetCurrentColumn();
 bool errorOccurred = false;
+static yyFlexLexer* currentScanner = nullptr;
 %}
 
 %define parse.error verbose
@@ -65,6 +68,7 @@ import : IMPORT CLASS_NAME
 
 package : PACKAGE CLASS_NAME
         {
+            currentPackageName = std::string($2);
             syntaxStats.packageNames.push_back(std::string($2));
             free($2);
         }
@@ -81,6 +85,16 @@ classHead : CLASS_STEREOTYPE CLASS_NAME
             node.name = std::string($2);
             node.stereotype = std::string($1);
             node.parents = std::vector<std::string>();
+            node.packageName = currentPackageName;
+
+            node.fileName = currentFileName;
+            if (currentScanner) {
+                node.line = currentScanner->lineno();
+            } else {
+                node.line = 0;
+            }
+            node.column = GetCurrentColumn();
+
             syntaxStats.classes.push_back(node);
 
             free($2); free($1);
@@ -172,6 +186,10 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                     node.isDisjoint = ($1 & 1);
                     node.isComplete = ($1 & 2);
 
+                    node.fileName = currentFileName;
+                    if (currentScanner) node.line = currentScanner->lineno();
+                    node.column = GetCurrentColumn();
+
                     syntaxStats.gensets.push_back(node);
 
                     delete $5;
@@ -182,8 +200,12 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                     GensetNode node;
                     node.name = std::string($2);
                     node.parent = std::string($6);
-                    
                     node.children = *($4);
+
+                    node.fileName = currentFileName;
+                    if (currentScanner) node.line = currentScanner->lineno();
+                    node.column = GetCurrentColumn();
+
                     syntaxStats.gensets.push_back(node);
                     
                     delete $4;
@@ -198,6 +220,10 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                     node.isDisjoint = ($1 & 1);
                     node.isComplete = ($1 & 2);
 
+                    node.fileName = currentFileName;
+                    if (currentScanner) node.line = currentScanner->lineno();
+                    node.column = GetCurrentColumn();
+
                     syntaxStats.gensets.push_back(node);
                     
                     delete $9;
@@ -208,8 +234,12 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                     GensetNode node;
                     node.name = std::string($2);
                     node.parent = std::string($5);
-                    
                     node.children = *($8);
+
+                    node.fileName = currentFileName;
+                    if (currentScanner) node.line = currentScanner->lineno();
+                    node.column = GetCurrentColumn();
+
                     syntaxStats.gensets.push_back(node);
 
                     delete $8;
@@ -296,9 +326,6 @@ cardinalityContentTail : DOTDOT ASTHERISTICS
                        |
                        ;
 %%
-
-static yyFlexLexer* currentScanner = nullptr;
-
 void setScanner(yyFlexLexer* scanner) {
     currentScanner = scanner;
 }
@@ -309,7 +336,7 @@ int yylex() {
     int token = currentScanner->yylex();
 
     if (token < 0) {
-        std::cerr << NORMAL_RED << "Lexical Error:" << BOLD_RED << " '" << currentScanner->YYText() << "'" << COLOR_RESET << " is not a " << BOLD_YELLOW << "valid identifier" << COLOR_RESET << " at line " << currentScanner->lineno() << ", column " << GetCurrentColumn() << std::endl;
+        std::cerr << "\n" << NORMAL_RED << "Lexical Error:" << BOLD_RED << " '" << currentScanner->YYText() << "'" << COLOR_RESET << " is not a " << BOLD_YELLOW << "valid identifier" << COLOR_RESET << " at line " << currentScanner->lineno() << ", column " << GetCurrentColumn();
         return UNKOWN;
     }
 
@@ -381,12 +408,10 @@ int yyerror(const char *s) {
         errorMessage.insert(redStart, BOLD_RED);
     }
 
-    std::cerr << NORMAL_RED << "Syntax Error: " << COLOR_RESET << errorMessage;
+    std::cerr << "\n" << NORMAL_RED << "Syntax Error: " << COLOR_RESET << errorMessage;
     
     if (currentScanner) {
         std::cerr << " at line " << currentScanner->lineno() << ", column " << GetCurrentColumn();
     }
-    
-    std::cerr << std::endl;
     return 0;
 }

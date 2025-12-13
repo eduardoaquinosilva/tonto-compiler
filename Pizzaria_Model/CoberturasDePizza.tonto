@@ -4,7 +4,7 @@ package CoberturasDePizza
 
 //=============================================
 // OPCOES DE CARNE
-subkind Calabresa specializes Carne
+subkind Calabresa specializes CarneA
 subkind Presunto specializes Carne
 subkind Salame specializes Carne
 
