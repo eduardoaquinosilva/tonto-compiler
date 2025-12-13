@@ -101,7 +101,22 @@ bool Ast::checkSubkindPattern() {
             std::string commonAncestor = "";
 
             for (const auto& parentName : cls.parents) {
-                std::string parentStereotype = getStereotype(parentName);
+                ClassNode* parentNode = getClassNode(parentName);
+                
+                if (parentNode == nullptr) {
+                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared.\n";
+                    return true;
+                }
+
+                std::string parentStereotype = parentNode->stereotype;
+
+                // Aplicar coerção
+                if (parentStereotype == "role" || parentStereotype == "phase" || parentStereotype == "roleMixin" || parentStereotype == "phaseMixin") {
+                    std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Conversion from " << BOLD_YELLOW << "'" << parentStereotype << "'" << COLOR_RESET << " to " << BOLD_YELLOW << "'kind'" << COLOR_RESET << ".\n";
+
+                    parentNode->stereotype = "kind";
+                    parentStereotype = "kind";
+                }
 
                 if (ultimateSortals.count(parentStereotype)) {
                     if (inheritsFromUltimateSortal) {
@@ -177,6 +192,16 @@ std::string Ast::getStereotype(const std::string& className) {
         }
     }
     return "unkown";
+}
+
+ClassNode* Ast::getClassNode(const std::string& className) {
+    for (auto& cls : syntaxStats.classes) {
+        if (cls.name == className) {
+            return &cls;
+        }
+    }
+
+    return nullptr;
 }
 
 std::string Ast::findUltimateSortalAncestor(const std::string& className) {

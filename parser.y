@@ -4,8 +4,8 @@
 #include <cstring>
 #include <vector>
 #include <FlexLexer.h>
-#include "stats.h"
 #include "ast.h"
+#include "stats.h"
 
 extern int yylex();
 extern int yyerror(const char *s);

@@ -11,6 +11,7 @@
 #include <FlexLexer.h>
 #include <fstream>
 #include <unordered_set>
+#include "stats.h"
 
 extern int columnNumber;
 extern int keyWordsCount;
@@ -39,6 +40,7 @@ private:
 	bool checkGensetPattern();
 	
 	std::string getStereotype(const std::string& className);
+	ClassNode* getClassNode(const std::string& className);
 	std::string findUltimateSortalAncestor(const std::string& className);
 public:
 	Ast(char** fileList, unsigned nFiles);
