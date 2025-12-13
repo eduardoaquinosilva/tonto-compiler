@@ -39,8 +39,8 @@ bool errorOccurred = false;
 %start program
 
 %%
-program : package declarations
-        | error { yyerrok; } declarations
+program : importHead package declarations
+        | importHead error { yyerrok; } declarations
         ;
 
 declarations : declarations declaration
@@ -54,6 +54,13 @@ declaration : class
             | externalRelation
             | error { yyclearin; }
             ;
+
+importHead : importHead import
+           |
+           ;
+
+import : IMPORT CLASS_NAME
+       ;
 
 package : PACKAGE CLASS_NAME
         {
@@ -75,16 +82,22 @@ classHead : CLASS_STEREOTYPE CLASS_NAME
           ;
 
 classTail : LBRACE attribute internalRelation RBRACE
-          | SPECIALIZES CLASS_NAME
+          | SPECIALIZES CLASS_NAME LBRACE attribute internalRelation RBRACE
           {
             syntaxStats.classNames.push_back(std::string($2));
             free($2);
           }
+          | SPECIALIZES classList
+          {
+            for (const auto& className : *$2) {
+                syntaxStats.classNames.push_back(className);
+            }
+            delete $2;
+          }
           |
-          | error RBRACE { yyerrok; }
           ;
 
-attribute : RELATION_NAME COLON attributeType attributeTail attribute
+attribute : RELATION_NAME COLON attributeType attributeCardinality attributeTail attribute
           |
           ;
 
@@ -94,7 +107,18 @@ attributeTail : LBRACE META RBRACE
 
 attributeType : TYPE
               | NEW_TYPE
+              | CLASS_NAME
               ;
+
+attributeCardinality : LBRACKET innerAttributeCardinality RBRACKET
+                     |
+                     ;
+
+innerAttributeCardinality : DIGIT
+                          | DIGIT DOTDOT DIGIT
+                          | DIGIT DOTDOT ASTHERISTICS
+                          | ASTHERISTICS
+                          ;
 
 dataType : DATATYPE NEW_TYPE LBRACE attribute RBRACE
          {
