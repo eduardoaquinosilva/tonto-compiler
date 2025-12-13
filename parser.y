@@ -35,6 +35,7 @@ bool errorOccurred = false;
 
 %type <listVal> classList
 %type <sval> cardinalityStructure
+%type <ival> restriction restrictionList
 
 %start program
 
@@ -76,7 +77,12 @@ classHead : CLASS_STEREOTYPE CLASS_NAME
           {
             currentClassName = std::string($2);
 
-            syntaxStats.classNames.push_back(std::string($2));
+            ClassNode node;
+            node.name = std::string($2);
+            node.stereotype = std::string($1);
+            node.parents = std::vector<std::string>();
+            syntaxStats.classes.push_back(node);
+
             free($2); free($1);
           }
           ;
@@ -84,14 +90,18 @@ classHead : CLASS_STEREOTYPE CLASS_NAME
 classTail : LBRACE attribute internalRelation RBRACE
           | SPECIALIZES CLASS_NAME LBRACE attribute internalRelation RBRACE
           {
-            syntaxStats.classNames.push_back(std::string($2));
+            if (!syntaxStats.classes.empty()) {
+                syntaxStats.classes.back().parents.push_back(std::string($2));
+            }
+            
             free($2);
           }
           | SPECIALIZES classList
           {
-            for (const auto& className : *$2) {
-                syntaxStats.classNames.push_back(className);
+            if (!syntaxStats.classes.empty() && $2 != nullptr) {
+                syntaxStats.classes.back().parents = *($2);
             }
+
             delete $2;
           }
           |
@@ -155,48 +165,52 @@ opt_comma : COMMA
 
 generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
                 {
-                    GensetInfo info;
-                    info.name = std::string($3);
-                    info.parent = std::string($7);
+                    GensetNode node;
+                    node.name = std::string($3);
+                    node.parent = std::string($7);
+                    node.children = *($5);
+                    node.isDisjoint = ($1 & 1);
+                    node.isComplete = ($1 & 2);
 
-                    info.children = *($5);
-                    syntaxStats.gensets.push_back(info);
+                    syntaxStats.gensets.push_back(node);
 
                     delete $5;
                     free($3); free($7);
                 }
                 | GENSET CLASS_NAME WHERE classList SPECIALIZES CLASS_NAME
                 {
-                    GensetInfo info;
-                    info.name = std::string($2);
-                    info.parent = std::string($6);
+                    GensetNode node;
+                    node.name = std::string($2);
+                    node.parent = std::string($6);
                     
-                    info.children = *($4);
-                    syntaxStats.gensets.push_back(info);
+                    node.children = *($4);
+                    syntaxStats.gensets.push_back(node);
                     
                     delete $4;
                     free($2); free($6);
                 }
                 | restrictionList GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
                 {
-                    GensetInfo info;
-                    info.name = std::string($3);
-                    info.parent = std::string($6);
+                    GensetNode node;
+                    node.name = std::string($3);
+                    node.parent = std::string($6);
+                    node.children = *($9);
+                    node.isDisjoint = ($1 & 1);
+                    node.isComplete = ($1 & 2);
 
-                    info.children = *($9);
-                    syntaxStats.gensets.push_back(info);
+                    syntaxStats.gensets.push_back(node);
                     
                     delete $9;
                     free($3); free($6);
                 }
                 | GENSET CLASS_NAME LBRACE GENERAL CLASS_NAME opt_comma SPECIFICS classList RBRACE
                 {
-                    GensetInfo info;
-                    info.name = std::string($2);
-                    info.parent = std::string($5);
+                    GensetNode node;
+                    node.name = std::string($2);
+                    node.parent = std::string($5);
                     
-                    info.children = *($8);
-                    syntaxStats.gensets.push_back(info);
+                    node.children = *($8);
+                    syntaxStats.gensets.push_back(node);
 
                     delete $8;
                     free($2); free($5);
@@ -208,14 +222,14 @@ generalizations : restrictionList GENSET CLASS_NAME WHERE classList SPECIALIZES 
                 }
                 ;
 
-restriction : DISJOINT
-            | OVERLAPPING
-            | COMPLETE
-            | INCOMPLETE
+restriction : DISJOINT { $$ = 1; }
+            | OVERLAPPING { $$ = 2; }
+            | COMPLETE { $$ = 4; }
+            | INCOMPLETE { $$ = 8; }
             ;
 
-restrictionList : restriction
-                | restrictionList restriction
+restrictionList : restriction { $$ = $1;}
+                | restrictionList restriction { $$ = $1 | $2; }
                 ;
 
 
@@ -234,14 +248,14 @@ classList : CLASS_NAME
 
 internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME internalRelation
                  {
-                    RelationInfo info;
-                    info.type = "Internal";
-                    info.stereotype = std::string($2);
-                    info.source = currentClassName;
-                    info.target = std::string($4);
-                    info.name = std::string($3);
+                    RelationNode node;
+                    node.type = "Internal";
+                    node.stereotype = std::string($2);
+                    node.source = currentClassName;
+                    node.target = std::string($4);
+                    node.name = std::string($3);
 
-                    syntaxStats.relations.push_back(info);
+                    syntaxStats.relations.push_back(node);
                     free($2); free($3); free($4);
                  }
                  |
@@ -249,14 +263,14 @@ internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME inter
 
 externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStructure CLASS_NAME
                  {
-                    RelationInfo info;
-                    info.type = "External";
-                    info.stereotype = std::string($2);
-                    info.source = std::string($4); 
-                    info.name = std::string($5);
-                    info.target = std::string($6);
+                    RelationNode node;
+                    node.type = "External";
+                    node.stereotype = std::string($2);
+                    node.source = std::string($4); 
+                    node.name = std::string($5);
+                    node.target = std::string($6);
 
-                    syntaxStats.relations.push_back(info);
+                    syntaxStats.relations.push_back(node);
                     free($2); free($4); free($5); free($6);
                  }
                  ;

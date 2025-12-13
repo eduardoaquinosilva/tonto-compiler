@@ -10,34 +10,7 @@
 
 #include <FlexLexer.h>
 #include <fstream>
-
-struct Counting {
-	int classCount = 0;
-	int relationsCount = 0;
-	int keyWordsCount = 0;
-	int instanceCount = 0;
-	int classStereotypesCount = 0;
-	int relationsStereotypesCount = 0;
-	int metaAttributesCount = 0;
-	int typesCount = 0;
-	int newTypesCount = 0;
-	int specialSymbolsCount = 0;
-	int numbersCount = 0;
-
-	void Add(int classCount, int relationsCount, int keywordsCount, int instanceCount, int classStereotypesCount, int relationsStereotypesCount, int metaAttributesCount, int typesCount, int newTypeCount, int specialSymbolsCount, int numbersCount) {
-		this->classCount += classCount;
-		this->relationsCount += relationsCount;
-		this->keyWordsCount += keywordsCount;
-		this->instanceCount += instanceCount;
-		this->classStereotypesCount += classStereotypesCount;
-		this->relationsStereotypesCount += relationsStereotypesCount;
-		this->metaAttributesCount += metaAttributesCount;
-		this->typesCount += typesCount;
-		this->newTypesCount += newTypeCount;
-		this->specialSymbolsCount += specialSymbolsCount;
-		this->numbersCount += numbersCount;
-	}
-};
+#include <unordered_set>
 
 extern int columnNumber;
 extern int keyWordsCount;
@@ -53,7 +26,20 @@ class Ast
 private:
 	yyFlexLexer scanner;
 	int lookahead;
+
+	const std::unordered_set<std::string> ultimateSortals = {
+        "kind", "collective", "quantity", "relator", "quality", "mode"
+    };
+
+    const std::unordered_set<std::string> nonSortals = {
+        "category", "mixin", "roleMixin", "phaseMixin"
+    };
 	
+	bool checkSubkindPattern();
+	bool checkGensetPattern();
+	
+	std::string getStereotype(const std::string& className);
+	std::string findUltimateSortalAncestor(const std::string& className);
 public:
 	Ast(char** fileList, unsigned nFiles);
 	void Start();

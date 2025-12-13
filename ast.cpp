@@ -14,20 +14,6 @@ extern void ResetCounters();
 
 extern bool errorOccurred;
 
-int columnNumber = 1;
-int keyWordsCount = 0;
-int classCount = 0;
-int relationsCount = 0;
-int instanceCount = 0;
-int classStereotypesCount = 0;
-int relationsStereotypesCount = 0;
-int metaAttributesCount = 0;
-int typesCount = 0;
-int newTypesCount = 0;
-int specialSymbolsCount = 0;
-int numbersCount = 0;
-Counting tokenCounts;
-
 char **fileList = nullptr;
 unsigned nFiles = 0;
 unsigned currentFile = 0;
@@ -47,28 +33,6 @@ int yyFlexLexer::yywrap()
 	if (openFile) {
 		openFile = false;
 		fin.close();
-
-        ss << "\nQuantidade de cada token identificados:\n";
-        ss << "Classes: " << classCount << " | Relações: " << relationsCount << " | Palavras Reservadas: " << keyWordsCount;
-        ss << " | Instâncias: " << instanceCount << " | Esteriótipos de Classes: " << classStereotypesCount;
-        ss << " | Esteriótipos de Relações: " << relationsStereotypesCount << " | Meta atributos: " << metaAttributesCount;
-        ss << " | Tipos: " << typesCount << " | Novos tipos: " << newTypesCount << " | Simbolos especiais: ";
-        ss << specialSymbolsCount << " | Números: " << numbersCount << "\n\n";
-
-        tokenCounts.Add(classCount, relationsCount, keyWordsCount, instanceCount, classStereotypesCount, relationsStereotypesCount, metaAttributesCount, typesCount, newTypesCount, specialSymbolsCount, numbersCount);
-        
-        columnNumber = 1;
-        keyWordsCount = 0;
-        classCount = 0;
-        relationsCount = 0;
-        instanceCount = 0;
-        classStereotypesCount = 0;
-        relationsStereotypesCount = 0;
-        metaAttributesCount = 0;
-        typesCount = 0;
-        newTypesCount = 0;
-        specialSymbolsCount = 0;
-        numbersCount = 0;
 	}
 
 	while (!openFile && (currentFile < nFiles)) {
@@ -108,7 +72,7 @@ void Ast::Start()
         
         int parseResult = yyparse();
 
-        if (parseResult == 0 && !errorOccurred) {
+        if (parseResult == 0 && !errorOccurred && !checkSubkindPattern() && !checkGensetPattern()) {
             std::cout << BOLD_GREEN << "Parse successful!" << COLOR_RESET << "\n";
         } else {
             std::cout << BOLD_RED << "Parse failed!" << COLOR_RESET << "\n";
@@ -119,4 +83,125 @@ void Ast::Start()
     }
 
     syntaxStats.printReport();
+}
+
+bool Ast::checkSubkindPattern() {
+    bool semanticError = false;
+
+    for (const auto& cls : syntaxStats.classes) {
+        if (cls.stereotype == "subkind") {
+            if (cls.parents.empty()) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " must have at least one superclass. Found 0 superclasses.\n";
+                semanticError = true;
+                continue;
+            }
+
+            bool inheritsFromUltimateSortal = false;
+            std::string ultimateSortalParentName = "";
+            std::string commonAncestor = "";
+
+            for (const auto& parentName : cls.parents) {
+                std::string parentStereotype = getStereotype(parentName);
+
+                if (ultimateSortals.count(parentStereotype)) {
+                    if (inheritsFromUltimateSortal) {
+                        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " cannot inherit from multiple ultimate sortals " << BOLD_YELLOW << "('" << ultimateSortalParentName << "' and '" << parentName << "')" << COLOR_RESET << ".\n";
+                        
+                        semanticError = true;
+                    }
+
+                    inheritsFromUltimateSortal = true;
+                    ultimateSortalParentName = parentName;
+                }
+
+                else if (parentStereotype == "subkind") {
+                    std::string ancestor = findUltimateSortalAncestor(parentName);
+                    
+                    if (commonAncestor.empty()) {
+                        commonAncestor = ancestor;
+                    } else if (!ancestor.empty() && ancestor != commonAncestor) {
+                        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " has conflicting identities from its superclasses " << BOLD_YELLOW << "('" << commonAncestor << "' and '" << ancestor << "')" << COLOR_RESET << ".\n";
+
+                        semanticError = true;
+                    }
+                }
+            }
+
+            if (inheritsFromUltimateSortal) {
+                if (cls.parents.size() > 1) {
+                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " inherits from ultimate sortal " << BOLD_YELLOW << "('" << ultimateSortalParentName << "')" << COLOR_RESET << " and therefore cannot have multiple inheritance.\n";
+
+                    semanticError = true;
+                }
+            }
+        }
+    }
+
+    return semanticError;
+}
+
+bool Ast::checkGensetPattern() {
+    bool semanticError = false;
+    
+    for (const auto& genset : syntaxStats.gensets) {
+        std::string parentStereotype = getStereotype(genset.parent);
+
+        if (ultimateSortals.count(parentStereotype)) {
+            bool childrenAreSubkinds = true;
+
+            if (!genset.children.empty()) {
+                for (const auto& child : genset.children) {
+                    if (getStereotype(child) != "subkind") {
+                        childrenAreSubkinds = false;
+                        break;
+                    }
+                }
+            }
+
+            if (childrenAreSubkinds) {
+                if (!genset.isDisjoint) {
+                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Genset " << BOLD_RED << "'" << genset.name << "'" << COLOR_RESET << " for the " << BOLD_YELLOW << "'Subkind Pattern'" << COLOR_RESET << " must be " << BOLD_YELLOW << "'disjoint'" << COLOR_RESET << ".\n";
+                    semanticError = true;
+                }
+            }
+        }
+    }
+
+    return semanticError;
+}
+
+std::string Ast::getStereotype(const std::string& className) {
+    for (const auto& cls : syntaxStats.classes) {
+        if (cls.name == className) {
+            return cls.stereotype;
+        }
+    }
+    return "unkown";
+}
+
+std::string Ast::findUltimateSortalAncestor(const std::string& className) {
+    const ClassNode* node = nullptr;
+    for (const auto& cls : syntaxStats.classes) {
+        if (cls.name == className) {
+            node = &cls;
+            break;
+        }
+    }
+
+    if (!node) return "";
+
+    if (ultimateSortals.count(node->stereotype)) {
+        return node->name;
+    }
+
+    if (node->stereotype == "subkind" || node->stereotype == "phase" || node->stereotype == "role") {
+        for (const auto& parentName : node->parents) {
+            std::string root = findUltimateSortalAncestor(parentName);
+            if (!root.empty()) {
+                return root;
+            }
+        }
+    }
+
+    return "";
 }

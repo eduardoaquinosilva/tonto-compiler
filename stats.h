@@ -8,13 +8,15 @@
 #include <iostream>
 #include "ast.h"
 
-struct GensetInfo {
+struct GensetNode {
     std::string name;
     std::string parent;
     std::vector<std::string> children;
+    bool isDisjoint = false;
+    bool isComplete = false;
 };
 
-struct RelationInfo {
+struct RelationNode {
     std::string type;
     std::string stereotype;
     std::string name;
@@ -22,13 +24,19 @@ struct RelationInfo {
     std::string target;
 };
 
+struct ClassNode {
+    std::string name;
+    std::string stereotype;
+    std::vector<std::string> parents;
+};
+
 struct SyntaxStats {
     std::vector<std::string> packageNames;
-    std::vector<std::string> classNames;
+    std::vector<ClassNode> classes;
     std::vector<std::string> dataTypeNames;
     std::vector<std::string> enumNames;
-    std::vector<GensetInfo> gensets;
-    std::vector<RelationInfo> relations;
+    std::vector<GensetNode> gensets;
+    std::vector<RelationNode> relations;
 
     void printReport() {
         std::stringstream ss;
@@ -37,8 +45,21 @@ struct SyntaxStats {
         ss << "Packages (" << packageNames.size() << "):\n";
         for (const auto& name : packageNames) ss << "  - " << name << "\n";
         
-        ss << "Classes (" << classNames.size() << "):\n";
-        for (const auto& name : classNames) ss << "  - " << name << "\n";
+        ss << "Classes (" << classes.size() << "):\n";
+        for (const auto& cls : classes) {
+            ss << "  - Nome: " << cls.name << "\n";
+            ss << "    Esteriótipo: " << cls.stereotype << "\n";
+            ss << "    Superclasses: ";
+            if (cls.parents.empty()) {
+                ss << "null";
+            } else {
+                for (size_t i = 0; i < cls.parents.size(); ++i) {
+                    ss << cls.parents[i];
+                    if (i < cls.parents.size() - 1) ss << ", ";
+                }
+            }
+            ss << "\n";
+        }
         
         ss << "New Data Types (" << dataTypeNames.size() << "):\n";
         for (const auto& name : dataTypeNames) ss << "  - " << name << "\n";
@@ -75,7 +96,7 @@ struct SyntaxStats {
 
     void clear() {
         packageNames.clear();
-        classNames.clear();
+        classes.clear();
     }
 };
 

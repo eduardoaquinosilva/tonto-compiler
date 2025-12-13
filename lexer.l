@@ -48,48 +48,48 @@ inline_comment "//".*
 {whitespaces}                  {}
 {inline_comment}               {}
  /* inicio Palavras Reservadas */
-genset                         { keyWordsCount++; return GENSET; }
-disjoint                       { keyWordsCount++; return DISJOINT; }
-complete                       { keyWordsCount++; return COMPLETE; }
-incomplete                     { keyWordsCount++; return INCOMPLETE; }
-overlapping                    { keyWordsCount++; return OVERLAPPING; }
-general                        { keyWordsCount++; return GENERAL; }
-specifics                      { keyWordsCount++; return SPECIFICS; }
-where                          { keyWordsCount++; return WHERE; }
-package                        { keyWordsCount++; return PACKAGE; }
-import                         { keyWordsCount++; return IMPORT; }
-functional-complexes           { keyWordsCount++; return FUNCTIONAL_COMPLEXES; }
-datatype                       { keyWordsCount++; return DATATYPE; }
-specializes                    { keyWordsCount++; return SPECIALIZES; }
-enum                           { keyWordsCount++; return ENUM; }
-relation                       { keyWordsCount++; return RELATION; }
+genset                         { return GENSET; }
+disjoint                       { return DISJOINT; }
+complete                       { return COMPLETE; }
+incomplete                     { return INCOMPLETE; }
+overlapping                    { return OVERLAPPING; }
+general                        { return GENERAL; }
+specifics                      { return SPECIFICS; }
+where                          { return WHERE; }
+package                        { return PACKAGE; }
+import                         { return IMPORT; }
+functional-complexes           { return FUNCTIONAL_COMPLEXES; }
+datatype                       { return DATATYPE; }
+specializes                    { return SPECIALIZES; }
+enum                           { return ENUM; }
+relation                       { return RELATION; }
  /* fim Palavras Reservadas */
-{classes_stereotypes}          { classStereotypesCount++; return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
-{relations_stereotypes}        { relationsStereotypesCount++; return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
-{meta}                         { metaAttributesCount++; return META; }                  /* Meta-atributos */
-{type}                         { typesCount++; return TYPE; }                  /* Tipos de Dados Nativos */
-({letter})*DataType            { newTypesCount++; return NEW_TYPE;}               /* Novos Tipos */
-({letter})[_A-Za-z]*{digit}+   { instanceCount++; return INSTANCE_NAME;}          /* Convenção para Nomes de Instâncias */
-[A-Z]("_"|{letter})*           { classCount++; return CLASS_NAME; }            /* Convenção para Nomes de Classes */
-[a-z]("_"|{letter})*           { relationsCount++; return RELATION_NAME; }         /* Convenção para Nomes de Relações */
+{classes_stereotypes}          { return CLASS_STEREOTYPE; }      /* Esteriótipos de Classe */
+{relations_stereotypes}        { return RELATIONS_STEREOTYPE; }  /* Esteriótipos de Relações */
+{meta}                         { return META; }                  /* Meta-atributos */
+{type}                         { return TYPE; }                  /* Tipos de Dados Nativos */
+({letter})*DataType            { return NEW_TYPE;}               /* Novos Tipos */
+({letter})[_A-Za-z]*{digit}+   { return INSTANCE_NAME;}          /* Convenção para Nomes de Instâncias */
+[A-Z]("_"|{letter})*           { return CLASS_NAME; }            /* Convenção para Nomes de Classes */
+[a-z]("_"|{letter})*           { return RELATION_NAME; }         /* Convenção para Nomes de Relações */
  /* inicio Símbolos Especiais */
-"{"                            { specialSymbolsCount++; return LBRACE; }
-"}"                            { specialSymbolsCount++; return RBRACE; }
-"("                            { specialSymbolsCount++; return LP; }
-")"                            { specialSymbolsCount++; return RP; }
-"["                            { specialSymbolsCount++; return LBRACKET; }
-"]"                            { specialSymbolsCount++; return RBRACKET; }
-".."                           { specialSymbolsCount++; return DOTDOT; }
-"<>--"                         { specialSymbolsCount++; return LRELATION; }
-"--<>"                         { specialSymbolsCount++; return RRELATION; }
-"--"                           { specialSymbolsCount++; return MRELATION; }
-"*"                            { specialSymbolsCount++; return ASTHERISTICS; }
-"@"                            { specialSymbolsCount++; return AT; }
-":"                            { specialSymbolsCount++; return COLON; }
-","                            { specialSymbolsCount++; return COMMA; }
+"{"                            { return LBRACE; }
+"}"                            { return RBRACE; }
+"("                            { return LP; }
+")"                            { return RP; }
+"["                            { return LBRACKET; }
+"]"                            { return RBRACKET; }
+".."                           { return DOTDOT; }
+"<>--"                         { return LRELATION; }
+"--<>"                         { return RRELATION; }
+"--"                           { return MRELATION; }
+"*"                            { return ASTHERISTICS; }
+"@"                            { return AT; }
+":"                            { return COLON; }
+","                            { return COMMA; }
  /* fim Símbolos Especiais */
-{digit}                        { numbersCount++; return DIGIT; }   /* Números inteiros */
-{number}                       { numbersCount++; return NUMBER; }  /* Números */
+{digit}                        { return DIGIT; }   /* Números inteiros */
+{number}                       { return NUMBER; }  /* Números */
 [-_A-Za-z0-9]*-[A-Za-z0-9_-]*  { return -1; }
 [0-9]+[_a-zA-Z][a-zA-Z0-9_]*   { return -1; }                      /* Token inválido */
 [a-zA-Z0-9_]+                  { return -1; }                      /* Token inválido */
