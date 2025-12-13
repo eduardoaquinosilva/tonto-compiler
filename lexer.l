@@ -37,7 +37,7 @@ whitespaces ({tab}|{space})+
 letter [A-Za-z]
 digit [0-9]
 number {digit}+(\.{digit}+)?(E[+-]?{digit}+)?
-classes_stereotypes (event|situation|process|category|mixin|phaseMixin|roleMixin|historicalRoleMixin|kind|collective|quantity|quality|mode|intrisicMode|extrinsicMode|subkind|phase|role|historicalRole|relator)
+classes_stereotypes (event|situation|process|category|mixin|phaseMixin|roleMixin|historicalRoleMixin|kind|collective|quantity|quality|mode|intrinsicMode|extrinsicMode|subkind|phase|role|historicalRole|relator)
 relations_stereotypes (material|derivation|comparative|mediation|characterization|externalDependence|componentOf|memberOf|subCollectionOf|subQualityOf|instantiation|termination|participational|participation|historicalDependence|creation|manifestation|bringsAbout|triggers|composition|aggregation|inherence|value|formal|constitution)
 type (number|string|boolean|date|time|datetime|int)
 meta (ordered|const|derived|subsets|redefines)
