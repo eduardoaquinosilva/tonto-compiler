@@ -1,18 +1,6 @@
 %{
     #include <iostream>
     #include "parser.h"
-    extern int columnNumber;
-    extern int keyWordsCount;
-    extern int classCount;
-    extern int relationsCount;
-    extern int instanceCount;
-    extern int classStereotypesCount;
-    extern int relationsStereotypesCount;
-    extern int metaAttributesCount;
-    extern int typesCount;
-    extern int newTypesCount;
-    extern int specialSymbolsCount;
-    extern int numbersCount;
 
     int yycolumn = 1;
     int tmpcolumn = 1;

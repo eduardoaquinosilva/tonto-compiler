@@ -6,9 +6,6 @@
 #include <unordered_set>
 #include "stats.h"
 
-extern int columnNumber;
-extern int keyWordsCount;
-
 extern char **fileList;
 extern unsigned nFiles;
 extern unsigned currentFile;
