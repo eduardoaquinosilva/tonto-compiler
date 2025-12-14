@@ -40,11 +40,13 @@ private:
 	bool checkStandalonePatterns();
 	bool checkSubkindPattern(const ClassNode&);
 	bool checkRolePattern(const ClassNode&);
+	bool checkPhasePattern(const ClassNode&);
 	bool checkGensetPattern();
 	
-	std::string getStereotype(const std::string& className);
-	ClassNode* getClassNode(const std::string& className);
-	std::string findUltimateSortalAncestor(const std::string& className);
+	std::string getStereotype(const std::string&);
+	ClassNode* getClassNode(const std::string&);
+	std::string findUltimateSortalAncestor(const std::string&);
+	int countPhaseChildren(const std::string&);
 public:
 	Ast(char** fileList, unsigned nFiles);
 	void Start();
