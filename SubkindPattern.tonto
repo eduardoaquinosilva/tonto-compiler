@@ -4,7 +4,9 @@ kind ClassName
 subkind SubclassNameOne specializes ClassName
 subkind SubclassNameTwo specializes ClassName
 
-disjoint genset Kind_Subkind_Genset_Name {
+
+disjoint complete genset Kind_Subkind_Genset_Name { 
     general ClassName
     specifics SubclassNameOne, SubclassNameTwo
 }
+// "complete" is optional, but "disjoint" applies to subkinds

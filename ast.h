@@ -37,7 +37,9 @@ private:
         "category", "mixin", "roleMixin", "phaseMixin"
     };
 	
-	bool checkSubkindPattern();
+	bool checkStandalonePatterns();
+	bool checkSubkindPattern(const ClassNode&);
+	bool checkRolePattern(const ClassNode&);
 	bool checkGensetPattern();
 	
 	std::string getStereotype(const std::string& className);

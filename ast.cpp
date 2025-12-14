@@ -88,7 +88,7 @@ void Ast::Start()
         std::cout << "\n" << BOLD_BLUE << "[TontoCompiler] Building Project" << COLOR_RESET << "\n";
 
         bool semanticError = false;
-        if (checkSubkindPattern()) semanticError = true;
+        if (checkStandalonePatterns()) semanticError = true;
         if (checkGensetPattern()) semanticError = true;
 
         if (!semanticError) {
@@ -103,97 +103,199 @@ void Ast::Start()
     syntaxStats.printReport();
 }
 
-bool Ast::checkSubkindPattern() {
+bool Ast::checkStandalonePatterns() {
     bool semanticError = false;
 
     for (const auto& cls : syntaxStats.classes) {
         if (cls.stereotype == "subkind") {
-            bool currentClassError = false;
-            bool wasCoerced = false;
+            semanticError = checkSubkindPattern(cls);
+        }
+        else if (cls.stereotype == "role") {
+            semanticError = checkRolePattern(cls);
+        }
+    }
 
-            std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+    return semanticError;
+}
 
-            if (cls.parents.empty()) {
-                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " must have at least one superclass. Found 0 superclasses. " << location << "\n";
+bool Ast::checkSubkindPattern(const ClassNode& cls) {
+    bool semanticError = false;
+
+    bool currentClassError = false;
+    bool wasCoerced = false;
+
+    std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+
+    if (cls.parents.empty()) {
+        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " must have at least one superclass. Found 0 superclasses. " << location << "\n";
+        
+        semanticError = true;
+        return semanticError;
+    }
+
+    bool inheritsFromUltimateSortal = false;
+    std::string ultimateSortalParentName = "";
+    std::string commonAncestor = "";
+
+    for (const auto& parentName : cls.parents) {
+        ClassNode* parentNode = getClassNode(parentName);
+        
+        if (parentNode == nullptr) {
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
+            
+            currentClassError = true;
+            semanticError = true;
+            continue;
+        }
+
+        std::string parentStereotype = parentNode->stereotype;
+
+        // Aplicar coerção
+        if (parentStereotype == "role" || parentStereotype == "phase" || parentStereotype == "roleMixin" || parentStereotype == "phaseMixin") {
+            std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Conversion from " << BOLD_YELLOW << "'" << parentStereotype << "'" << COLOR_RESET << " to " << BOLD_YELLOW << "'kind'" << COLOR_RESET << ". " << location << "\n";
+
+            parentNode->stereotype = "kind";
+            parentStereotype = "kind";
+            wasCoerced = true;
+        }
+
+        if (ultimateSortals.count(parentStereotype)) {
+            if (inheritsFromUltimateSortal) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " cannot inherit from multiple ultimate sortals " << BOLD_YELLOW << "('" << ultimateSortalParentName << "' and '" << parentName << "')" << COLOR_RESET << ". " << location << "\n";
                 
                 semanticError = true;
-                continue;
+                currentClassError = true;
             }
 
-            bool inheritsFromUltimateSortal = false;
-            std::string ultimateSortalParentName = "";
-            std::string commonAncestor = "";
+            inheritsFromUltimateSortal = true;
+            ultimateSortalParentName = parentName;
+        }
+        else if (parentStereotype == "subkind") {
+            std::string ancestor = findUltimateSortalAncestor(parentName);
+            
+            if (commonAncestor.empty()) {
+                commonAncestor = ancestor;
+            } else if (!ancestor.empty() && ancestor != commonAncestor) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " has conflicting identities from its superclasses " << BOLD_YELLOW << "('" << commonAncestor << "' and '" << ancestor << "')" << COLOR_RESET << ". " << location << "\n";
 
-            for (const auto& parentName : cls.parents) {
-                ClassNode* parentNode = getClassNode(parentName);
-                
-                if (parentNode == nullptr) {
-                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
-                    
-                    currentClassError = true;
-                    semanticError = true;
-                    continue;
-                }
-
-                std::string parentStereotype = parentNode->stereotype;
-
-                // Aplicar coerção
-                if (parentStereotype == "role" || parentStereotype == "phase" || parentStereotype == "roleMixin" || parentStereotype == "phaseMixin") {
-                    std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Conversion from " << BOLD_YELLOW << "'" << parentStereotype << "'" << COLOR_RESET << " to " << BOLD_YELLOW << "'kind'" << COLOR_RESET << ". " << location << "\n";
-
-                    parentNode->stereotype = "kind";
-                    parentStereotype = "kind";
-                    wasCoerced = true;
-                }
-
-                if (ultimateSortals.count(parentStereotype)) {
-                    if (inheritsFromUltimateSortal) {
-                        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " cannot inherit from multiple ultimate sortals " << BOLD_YELLOW << "('" << ultimateSortalParentName << "' and '" << parentName << "')" << COLOR_RESET << ". " << location << "\n";
-                        
-                        semanticError = true;
-                        currentClassError = true;
-                    }
-
-                    inheritsFromUltimateSortal = true;
-                    ultimateSortalParentName = parentName;
-                }
-
-                else if (parentStereotype == "subkind") {
-                    std::string ancestor = findUltimateSortalAncestor(parentName);
-                    
-                    if (commonAncestor.empty()) {
-                        commonAncestor = ancestor;
-                    } else if (!ancestor.empty() && ancestor != commonAncestor) {
-                        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " has conflicting identities from its superclasses " << BOLD_YELLOW << "('" << commonAncestor << "' and '" << ancestor << "')" << COLOR_RESET << ". " << location << "\n";
-
-                        semanticError = true;
-                        currentClassError = true;
-                    }
-                }
-            }
-
-            if (inheritsFromUltimateSortal) {
-                if (cls.parents.size() > 1) {
-                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " inherits from ultimate sortal " << BOLD_YELLOW << "('" << ultimateSortalParentName << "')" << COLOR_RESET << " and therefore cannot have multiple inheritance. " << location << "\n";
-
-                    semanticError = true;
-                    currentClassError = true;
-                }
-            }
-
-            if (!currentClassError) {
-                Output output;
-                output.patternName = "Subkind Pattern";
-                output.element = "Class: " + cls.name;
-                
-                if (wasCoerced) {
-                    output.status = "Incompleto";
-                } else {
-                    output.status = "Completo";
-                }
-                syntaxStats.identifiedPatterns.push_back(output);
+                semanticError = true;
+                currentClassError = true;
             }
         }
+    }
+
+    if (inheritsFromUltimateSortal) {
+        if (cls.parents.size() > 1) {
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'subkind'" << COLOR_RESET << " inherits from ultimate sortal " << BOLD_YELLOW << "('" << ultimateSortalParentName << "')" << COLOR_RESET << " and therefore cannot have multiple inheritance. " << location << "\n";
+
+            semanticError = true;
+            currentClassError = true;
+        }
+    }
+
+    if (!currentClassError) {
+        Output output;
+        output.patternName = "Subkind Pattern";
+        output.element = "Class: " + cls.name;
+        
+        if (wasCoerced) {
+            output.status = "Incompleto";
+        } else {
+            output.status = "Completo";
+        }
+        syntaxStats.identifiedPatterns.push_back(output);
+    }
+
+    return semanticError;
+}
+
+bool Ast::checkRolePattern(const ClassNode& cls) {
+    bool semanticError = false;
+
+    bool currentClassError = false;
+    bool wasCoerced = false;
+
+    std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+
+    if (cls.parents.empty()) {
+        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " must have at least one superclass. Found 0 superclasses. " << location << "\n";
+        
+        semanticError = true;
+        return semanticError;
+    }
+
+    bool inheritsFromUltimateSortal = false;
+    std::string ultimateSortalParentName = "";
+    std::string commonAncestor = "";
+
+    for (const auto& parentName : cls.parents) {
+        ClassNode* parentNode = getClassNode(parentName);
+
+        if (parentNode == nullptr) {
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
+            
+            currentClassError = true;
+            semanticError = true;
+            continue;
+        }
+
+        std::string parentStereotype = parentNode->stereotype;
+
+        // Aplicar coerção
+        if (parentStereotype == "event" || parentStereotype == "situation") {
+            std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Conversion from " << BOLD_YELLOW << "'" << parentStereotype << "'" << COLOR_RESET << " to " << BOLD_YELLOW << "'kind'" << COLOR_RESET << ". " << location << "\n";
+
+            parentNode->stereotype = "kind";
+            parentStereotype = "kind";
+            wasCoerced = true;
+        }
+
+        if (ultimateSortals.count(parentStereotype)) {
+            if (inheritsFromUltimateSortal) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " cannot inherit from multiple ultimate sortals " << BOLD_YELLOW << "('" << ultimateSortalParentName << "' and '" << parentName << "')" << COLOR_RESET << ". " << location << "\n";
+                
+                semanticError = true;
+                currentClassError = true;
+            }
+
+            inheritsFromUltimateSortal = true;
+            ultimateSortalParentName = parentName;
+        }
+        else if (parentStereotype == "role" || parentStereotype == "subkind") {
+            std::string ancestor = findUltimateSortalAncestor(parentName);
+            
+            if (commonAncestor.empty()) {
+                commonAncestor = ancestor;
+            } else if (!ancestor.empty() && ancestor != commonAncestor) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " has conflicting identities from its superclasses " << BOLD_YELLOW << "('" << commonAncestor << "' and '" << ancestor << "')" << COLOR_RESET << ". " << location << "\n";
+                
+                semanticError = true;
+                currentClassError = true;
+            }
+        }
+    }
+
+    if (!inheritsFromUltimateSortal && commonAncestor.empty()) {
+        bool allMixins = true;
+        for(const auto& p : cls.parents) {
+            std::string s = getStereotype(p);
+            if(nonSortals.find(s) == nonSortals.end()) allMixins = false;
+        }
+
+        if (!allMixins) {
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " os stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " does not inherit identity from any Ultimate Sortal (Kind, Collective, etc). " << location << "\n";
+            
+            semanticError = true;
+            currentClassError = true;
+        }
+    }
+
+    if (!currentClassError) {
+        Output output;
+        output.patternName = "Role Pattern";
+        output.element = "Class: " + cls.name;
+        output.status = wasCoerced ? "Incompleto" : "Completo";
+        syntaxStats.identifiedPatterns.push_back(output);
     }
 
     return semanticError;
@@ -207,19 +309,22 @@ bool Ast::checkGensetPattern() {
 
         if (ultimateSortals.count(parentStereotype)) {
             bool childrenAreSubkinds = true;
+            bool childrenAreRoles = true;
 
             if (!genset.children.empty()) {
                 for (const auto& child : genset.children) {
-                    if (getStereotype(child) != "subkind") {
-                        childrenAreSubkinds = false;
-                        break;
-                    }
+                    std::string stereotype = getStereotype(child);
+                    if (stereotype != "subkind") childrenAreSubkinds = false;
+                    if (stereotype != "role") childrenAreRoles = false;
                 }
+            } else {
+                childrenAreSubkinds = false;
+                childrenAreRoles = false;
             }
 
-            if (childrenAreSubkinds) {
-                std::string location = "[" + genset.fileName + "(" + std::to_string(genset.line) + "," + std::to_string(genset.column) +")]";
+            std::string location = "[" + genset.fileName + "(" + std::to_string(genset.line) + "," + std::to_string(genset.column) +")]";
 
+            if (childrenAreSubkinds) {
                 if (!genset.isDisjoint) {
                     std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Genset " << BOLD_RED << "'" << genset.name << "'" << COLOR_RESET << " for the " << BOLD_YELLOW << "'Subkind Pattern'" << COLOR_RESET << " must be " << BOLD_YELLOW << "'disjoint'" << COLOR_RESET << ". " << location << "\n";
                     semanticError = true;
@@ -230,6 +335,12 @@ bool Ast::checkGensetPattern() {
                     output.status = "Completo";
                     syntaxStats.identifiedPatterns.push_back(output);
                 }
+            } else {
+                Output output;
+                output.patternName = "Role Pattern (Genset)";
+                output.element = "Genset: " + genset.name;
+                output.status = "Completo";
+                syntaxStats.identifiedPatterns.push_back(output);
             }
         }
     }

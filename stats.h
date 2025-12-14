@@ -105,7 +105,7 @@ struct SyntaxStats {
             ss << "Nenhum padrao de projeto identificado.\n";
         } else {
             for (const auto& log : identifiedPatterns) {
-                ss << "  - [" << log.patternName << "] em " << log.element << " -> Status: " << log.status << "\n";
+                ss << "  - [" << log.patternName << "] em " << log.element << " (" << log.status << ")\n";
             }
         }
 

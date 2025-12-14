@@ -1,0 +1,11 @@
+package Role_Pattern
+
+kind ClassName
+role Role_NameOne specializes ClassName
+role Role_NameTwo specializes ClassName
+
+complete genset Class_Role_Genset_Name { 
+    general ClassName
+    specifics Role_NameOne, Role_NameTwo
+}
+//"complete" is optional, but "disjoint" doesnt' apply to roles
