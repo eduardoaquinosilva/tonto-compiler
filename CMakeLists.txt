@@ -17,7 +17,7 @@ ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_SOURCE_DIR})
 
-set(SOURCES tonto-compiler.cpp ast.cpp)
+set(SOURCES tonto-compiler.cpp ast.cpp stats.cpp)
 
 # Executável depende também da saída do Flex e do Bison
 add_executable(tonto-compiler ${SOURCES} ${FLEX_Lexer_OUTPUTS} ${BISON_Parser_OUTPUTS})

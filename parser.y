@@ -64,6 +64,10 @@ importHead : importHead import
            ;
 
 import : IMPORT CLASS_NAME
+       {
+            syntaxStats.fileImports[currentFileName].push_back(std::string($2));
+            free($2);
+       }
        ;
 
 package : PACKAGE CLASS_NAME

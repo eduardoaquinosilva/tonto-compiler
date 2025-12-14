@@ -139,7 +139,7 @@ bool Ast::checkSubkindPattern(const ClassNode& cls) {
     std::string commonAncestor = "";
 
     for (const auto& parentName : cls.parents) {
-        ClassNode* parentNode = getClassNode(parentName);
+        ClassNode* parentNode = getClassNode(parentName, cls.fileName);
         
         if (parentNode == nullptr) {
             std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
@@ -228,7 +228,7 @@ bool Ast::checkRolePattern(const ClassNode& cls) {
     std::string commonAncestor = "";
 
     for (const auto& parentName : cls.parents) {
-        ClassNode* parentNode = getClassNode(parentName);
+        ClassNode* parentNode = getClassNode(parentName, cls.fileName);
 
         if (parentNode == nullptr) {
             std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
@@ -318,7 +318,7 @@ bool Ast::checkPhasePattern(const ClassNode& cls) {
     std::string commonAncestor = "";
 
     for (const auto& parentName : cls.parents) {
-        ClassNode* parentNode = getClassNode(parentName);
+        ClassNode* parentNode = getClassNode(parentName, cls.fileName);
 
         if (parentNode == nullptr) {
             std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Superclass " << BOLD_RED << "'" << parentName << "'" << COLOR_RESET << " was not declared. " << location << "\n";
@@ -468,12 +468,30 @@ std::string Ast::getStereotype(const std::string& className) {
     return "unkown";
 }
 
-ClassNode* Ast::getClassNode(const std::string& className) {
+ClassNode* Ast::getClassNode(const std::string& className, const std::string& fileName) {
+    ClassNode* classNode = nullptr;
+
     for (auto& cls : syntaxStats.classes) {
         if (cls.name == className) {
-            return &cls;
+            classNode = &cls;
+            break;
         }
     }
+
+    if (!classNode) return nullptr;
+
+    if (classNode->fileName == fileName) return classNode;
+
+    const std::vector<std::string>& imports = syntaxStats.fileImports[fileName];
+    bool isImported = false;
+    for (const auto& pakage : imports) {
+        if (pakage == classNode->packageName) {
+            isImported = true;
+            break;
+        }
+    }
+
+    if (isImported) return classNode;
 
     return nullptr;
 }
