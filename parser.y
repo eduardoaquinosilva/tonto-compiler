@@ -24,20 +24,25 @@ static yyFlexLexer* currentScanner = nullptr;
 %code requires {
     #include <string>
     #include <vector>
+    #include "stats.h"
 }
 
 %union {
     char* sval;
     int ival;
+    Cardinality cardVal;       
+    RelationMiddleInfo* midVal;
     std::vector<std::string>* listVal;
 }
 
 %token <sval> PACKAGE "package" CLASS_NAME "class name" CLASS_STEREOTYPE "class stereotype" SPECIALIZES "specializes" DATATYPE "datatype" NEW_TYPE "new dataype name" ENUM "enum" RELATIONS_STEREOTYPE "relation stereotype" RELATION_NAME "relation name"
 
-%token LBRACE "{" RBRACE "}" COLON ":" TYPE "primitive data type" META "meta attributes" INSTANCE_NAME "instance name" COMMA "," DISJOINT "disjoint" OVERLAPPING "overlapping" COMPLETE "complete" INCOMPLETE "incomplete" GENSET "genset" WHERE "where" GENERAL "general" SPECIFICS "specifics" LBRACKET "[" RBRACKET "]" LRELATION "<>--" MRELATION "--" RRELATION "--<>" DIGIT "digit" DOTDOT ".." ASTHERISTICS "*" AT "@" RELATION "relation" IMPORT "import" FUNCTIONAL_COMPLEXES "functional-complexes" LP "(" RP ")" NUMBER "number" UNKOWN ""
+%token <ival> DIGIT "digit"
+%token LBRACE "{" RBRACE "}" COLON ":" TYPE "primitive data type" META "meta attributes" INSTANCE_NAME "instance name" COMMA "," DISJOINT "disjoint" OVERLAPPING "overlapping" COMPLETE "complete" INCOMPLETE "incomplete" GENSET "genset" WHERE "where" GENERAL "general" SPECIFICS "specifics" LBRACKET "[" RBRACKET "]" LRELATION "<>--" MRELATION "--" RRELATION "--<>" DOTDOT ".." ASTHERISTICS "*" AT "@" RELATION "relation" IMPORT "import" FUNCTIONAL_COMPLEXES "functional-complexes" LP "(" RP ")" NUMBER "number" UNKOWN ""
 
+%type <cardVal> cardinality cardinalityContent cardinalityContentTail
+%type <midVal> cardinalityStructure
 %type <listVal> classList
-%type <sval> cardinalityStructure
 %type <ival> restriction restrictionList
 
 %start program
@@ -285,12 +290,16 @@ internalRelation : AT RELATIONS_STEREOTYPE cardinalityStructure CLASS_NAME inter
                     RelationNode node;
                     node.type = "Internal";
                     node.stereotype = std::string($2);
+                    node.name = $3->name; 
+                    node.sourceCard = $3->sourceCard; 
+                    node.targetCard = $3->targetCard; 
+
                     node.source = currentClassName;
                     node.target = std::string($4);
-                    node.name = std::string($3);
 
                     syntaxStats.relations.push_back(node);
-                    free($2); free($3); free($4);
+                    delete $3;
+                    free($2); free($4);
                  }
                  |
                  ;
@@ -301,21 +310,51 @@ externalRelation : AT RELATIONS_STEREOTYPE RELATION CLASS_NAME cardinalityStruct
                     node.type = "External";
                     node.stereotype = std::string($2);
                     node.source = std::string($4); 
-                    node.name = std::string($5);
+                    node.name = $5->name; 
+                    node.sourceCard = $5->sourceCard; 
+                    node.targetCard = $5->targetCard; 
                     node.target = std::string($6);
 
                     syntaxStats.relations.push_back(node);
-                    free($2); free($4); free($5); free($6);
+                    delete $5;
+                    free($2); free($4); free($6);
                  }
                  ;
 
-cardinalityStructure : cardinality specialCardinalitySymbol cardinality { $$ = strdup(""); }
-                     | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality { $$ = $3; }
-                     | specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality { $$ = $2; }
-                     | specialCardinalitySymbol cardinality { $$ = strdup(""); }
+cardinalityStructure : cardinality specialCardinalitySymbol cardinality 
+                     { 
+                        $$ = new RelationMiddleInfo();
+                        $$->sourceCard = $1;       
+                        $$->targetCard = $3;       
+                        $$->name = "";            
+                     }
+                     | cardinality specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality 
+                     { 
+                        $$ = new RelationMiddleInfo();
+                        $$->sourceCard = $1;
+                        $$->targetCard = $5;
+                        $$->name = std::string($3);
+                        free($3);
+                     }
+                     | specialCardinalitySymbol RELATION_NAME specialCardinalitySymbol cardinality 
+                     { 
+                        $$ = new RelationMiddleInfo();
+                        $$->sourceCard = {1, 1}; 
+                        $$->targetCard = $4;
+                        $$->name = std::string($2);
+                        free($2);
+                      }
+                     | specialCardinalitySymbol cardinality 
+                     { 
+                        $$ = new RelationMiddleInfo();
+                        $$->sourceCard = {1, 1};
+                        $$->targetCard = $2;
+                        $$->name = "";
+                     }
                      ;
 
 cardinality : LBRACKET cardinalityContent RBRACKET
+            { $$ = $2; }
             ;
 
 specialCardinalitySymbol : LRELATION
@@ -324,10 +363,25 @@ specialCardinalitySymbol : LRELATION
                          ;
 
 cardinalityContent : DIGIT cardinalityContentTail
+                    {
+                       $$.lower = $1;
+                       
+                       if ($2.upper == -2) {
+                           $$.upper = $1;    
+                       } else {
+                           $$.upper = $2.upper; 
+                       }
+                   }
                    ;
 
 cardinalityContentTail : DOTDOT ASTHERISTICS
+                       {
+                           $$.upper = -1; 
+                       }
                        |
+                       {
+                           $$.upper = -2; 
+                       }
                        ;
 %%
 void setScanner(yyFlexLexer* scanner) {
@@ -346,6 +400,10 @@ int yylex() {
 
     if (token == PACKAGE || token == CLASS_NAME || token == CLASS_STEREOTYPE || token == SPECIALIZES || token == DATATYPE || token == NEW_TYPE || token == ENUM || token == RELATIONS_STEREOTYPE || token == RELATION_NAME) {
         yylval.sval = strdup(currentScanner->YYText());
+    }
+
+    if (token == DIGIT) {
+        yylval.ival = std::stoi(currentScanner->YYText());
     }
 
     return token;

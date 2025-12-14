@@ -116,6 +116,9 @@ bool Ast::checkStandalonePatterns() {
         else if (cls.stereotype == "phase") {
             semanticError = checkPhasePattern(cls) || semanticError;
         }
+        else if (cls.stereotype == "mode") {
+            semanticError = checkModePattern(cls) || semanticError;
+        }
     }
 
     return semanticError;
@@ -389,6 +392,127 @@ bool Ast::checkPhasePattern(const ClassNode& cls) {
     return semanticError;
 }
 
+static bool isSubtype(const std::string& sub, const std::string& super) {
+    if (sub == super) return true;
+    const ClassNode* node = nullptr;
+    for (const auto& cls : syntaxStats.classes) {
+        if (cls.name == sub) {
+            node = &cls;
+            break;
+        }
+    }
+    if (!node) return false;
+    for (const auto& parent : node->parents) {
+        if (isSubtype(parent, super)) return true;
+    }
+    return false;
+}
+
+bool Ast::checkModePattern(const ClassNode& cls){
+    bool semanticError = false;
+    bool wasCoerced = false;
+
+    std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+
+    int inherenceRelationAmount = 0;
+    std::string bearerType = "";
+
+    for (auto& node : syntaxStats.relations) {
+        if (node.source == cls.name) {
+
+            if(node.stereotype == "characterization" || node.stereotype == "inherence"){
+                inherenceRelationAmount++;
+                bearerType = node.target;
+                
+                // coerção
+                if (node.targetCard.lower != 1 || node.targetCard.upper != 1) {
+                    std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Implicitly setting cardinality of bearer " << BOLD_YELLOW << "'" << node.target << "'" << COLOR_RESET << " to [1] for mode " << BOLD_YELLOW << "'" << cls.name << "'" << COLOR_RESET << ". " << location << "\n";
+                    node.targetCard.lower = 1;
+                    node.targetCard.upper = 1;
+                    wasCoerced = true;
+                }
+
+                ClassNode* targetNode = getClassNode(node.target, cls.fileName);
+                if (targetNode != nullptr) {
+                    if (targetNode->stereotype == "event" || targetNode->stereotype == "situation") {
+                        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'mode'" << COLOR_RESET << " cannot characterize an entity of stereotype " << BOLD_RED << "'" << targetNode->stereotype << "'" << COLOR_RESET << ". The target must be an Endurant. " << location << "\n";
+                        semanticError = true;
+                    }
+                } else {
+                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Target class " << BOLD_RED << "'" << node.target << "'" << COLOR_RESET << " was not declared. " << location << "\n";
+                    semanticError = true;
+                }
+            }
+        }
+    }
+    
+    if (bearerType.empty()) {
+        std::string ancestorName = findInherenceAncestor(cls.name);
+        if (!ancestorName.empty()) {
+             for (const auto& rel : syntaxStats.relations) {
+                 if (rel.source == ancestorName && (rel.stereotype == "characterization" || rel.stereotype == "inherence")) {
+                     bearerType = rel.target;
+                     break;
+                 }
+             }
+        }
+    }
+
+    for (const auto& node : syntaxStats.relations) {
+        if (node.source == cls.name && node.stereotype == "externalDependence") {
+             if (!bearerType.empty() && node.target == bearerType) {
+                 std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'mode'" << COLOR_RESET << " has an external dependency to the same type as its bearer (" << BOLD_RED << "'" << bearerType << "'" << COLOR_RESET << "). This is redundant and likely a modeling error. " << location << "\n";
+                 semanticError = true;
+             }
+        }
+    }
+
+    if(inherenceRelationAmount > 1){
+        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'mode'" << COLOR_RESET << " can have only 1 inherence relation (characterization or inherence) " << location << "\n";
+        semanticError = true;
+    }else{
+
+        std::string ancestorName = "";
+        for (const auto& parent : cls.parents) {
+            std::string res = findInherenceAncestor(parent);
+            if (!res.empty()) {
+                ancestorName = res;
+                break;
+            }
+        }
+
+        if(inherenceRelationAmount == 1 && !ancestorName.empty()){
+            std::string inheritedBearer = "";
+            for (const auto& rel : syntaxStats.relations) {
+                if (rel.source == ancestorName && (rel.stereotype == "characterization" || rel.stereotype == "inherence")) {
+                    inheritedBearer = rel.target;
+                    break;
+                }
+            }
+            if (!isSubtype(bearerType, inheritedBearer)) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'mode'" << COLOR_RESET << " redefines the bearer type to " << BOLD_RED << "'" << bearerType << "'" << COLOR_RESET << ", which is not a subtype of the inherited bearer " << BOLD_RED << "'" << inheritedBearer << "'" << COLOR_RESET << " (from " << ancestorName << "). " << location << "\n";
+                semanticError = true;
+            }
+        }
+        else if(inherenceRelationAmount == 0 && ancestorName.empty()){
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'mode'" << COLOR_RESET << " needs to have 1 inherence relation (characterization or inherence) " << location << "\n";
+            semanticError = true;
+        }
+
+    }
+
+    if (!semanticError) {
+        Output output;
+        output.patternName = "Mode Pattern";
+        output.element = "Class: " + cls.name;
+        output.status = wasCoerced ? "Incompleto" : "Completo";
+        syntaxStats.identifiedPatterns.push_back(output);
+    }
+
+    return semanticError;
+}
+
+
 bool Ast::checkGensetPattern() {
     bool semanticError = false;
     bool wasCoerced = false;
@@ -523,6 +647,34 @@ std::string Ast::findUltimateSortalAncestor(const std::string& className) {
     return "";
 }
 
+std::string Ast::findInherenceAncestor(const std::string& className) {
+    
+    const ClassNode* node = nullptr;
+    for (const auto& cls : syntaxStats.classes) {
+        if (cls.name == className) {
+            node = &cls;
+            break;
+        }
+    }
+    if (!node) return "";
+
+    for (const auto& rel : syntaxStats.relations) {
+        if (rel.source == className) {
+            if (rel.stereotype == "characterization" || rel.stereotype == "inherence") {
+                return className;
+            }
+        }
+    }
+
+    for (const auto& parentName : node->parents) {
+        std::string ancestor = findInherenceAncestor(parentName);
+        if (!ancestor.empty()) {
+            return ancestor; 
+        }
+    }
+
+    return ""; 
+}
 int Ast::countPhaseChildren(const std::string& parentName) {
     int count = 0;
     for (const auto& cls : syntaxStats.classes) {

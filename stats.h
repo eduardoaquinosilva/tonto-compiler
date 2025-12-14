@@ -15,6 +15,7 @@
 #define BOLD_YELLOW  "\033[1;33m"
 #define BOLD_PURPLE  "\033[1;35m"
 #define BOLD_BLUE    "\033[1;34m"
+#define UNBOUNDED -1
 
 struct Output {
     std::string patternName;
@@ -34,12 +35,25 @@ struct GensetNode {
     int column = 0;
 };
 
+struct Cardinality {
+    int lower;      
+    int upper;
+};
+
 struct RelationNode {
     std::string type;
     std::string stereotype;
     std::string name;
     std::string source;
     std::string target;
+    Cardinality sourceCard; 
+    Cardinality targetCard; 
+};
+
+struct RelationMiddleInfo {
+    std::string name;
+    Cardinality sourceCard; 
+    Cardinality targetCard; 
 };
 
 struct ClassNode {

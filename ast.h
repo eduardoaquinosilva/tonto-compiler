@@ -25,16 +25,18 @@ private:
     const std::unordered_set<std::string> nonSortals = {
         "category", "mixin", "roleMixin", "phaseMixin"
     };
-	
 	bool checkStandalonePatterns();
 	bool checkSubkindPattern(const ClassNode&);
 	bool checkRolePattern(const ClassNode&);
 	bool checkPhasePattern(const ClassNode&);
 	bool checkGensetPattern();
+	bool checkModePattern(const ClassNode&);
 	
 	std::string getStereotype(const std::string&);
 	ClassNode* getClassNode(const std::string&, const std::string&);
 	std::string findUltimateSortalAncestor(const std::string&);
+ 	std::string findInherenceAncestor(const std::string&);
+
 	int countPhaseChildren(const std::string&);
 public:
 	Ast(char** fileList, unsigned nFiles);

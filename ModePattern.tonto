@@ -1,0 +1,9 @@
+package Mode_Pattern
+
+kind ClassName
+kind ClassNames
+
+mode Mode_Name {
+    @characterization [1..*] -- [1] ClassName
+    @externalDependence [1..*] -- [1] ClassNames
+}
