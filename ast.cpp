@@ -90,6 +90,7 @@ void Ast::Start()
         bool semanticError = false;
         if (checkStandalonePatterns()) semanticError = true;
         if (checkGensetPattern()) semanticError = true;
+        if (checkMaterialRelations()) semanticError = true;
 
         if (!semanticError) {
             std::cout << BOLD_GREEN << "Build successful!" << COLOR_RESET << "\n";
@@ -118,8 +119,11 @@ bool Ast::checkStandalonePatterns() {
         }
         else if (cls.stereotype == "mode") {
             semanticError = checkModePattern(cls) || semanticError;
+        }else if(cls.stereotype == "relator"){
+            semanticError = checkRelatorPattern(cls) || semanticError;
         }
     }
+    
 
     return semanticError;
 }
@@ -512,6 +516,116 @@ bool Ast::checkModePattern(const ClassNode& cls){
     return semanticError;
 }
 
+bool Ast::checkRelatorPattern(const ClassNode& cls){
+
+    bool semanticError = false;
+    bool wasCoerced = false;
+
+    std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+
+    int amountOfRelations = 0;
+
+    for (auto& node : syntaxStats.relations) {
+
+        if (node.source == cls.name && node.stereotype == "mediation") {
+            amountOfRelations++;
+            
+            ClassNode* targetNode = getClassNode(node.target, cls.fileName);
+
+            if((targetNode != nullptr) && 
+                (targetNode->stereotype == "mode" || 
+                 targetNode->stereotype == "intrinsicMode" || 
+                 targetNode->stereotype == "extrinsicMode" || 
+                 targetNode->stereotype == "quality" || 
+                 targetNode->stereotype == "relator" || 
+                 targetNode->stereotype == "event" || 
+                 targetNode->stereotype == "process" ||
+                 targetNode->stereotype == "situation")){
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'relator'" << COLOR_RESET << " cannot mediate an entity of stereotype " << BOLD_RED << "'" << targetNode->stereotype << "'" << COLOR_RESET << ". The target must be an Endurant. " << location << "\n";
+                semanticError = true;
+            }
+        }
+    }
+
+    if(amountOfRelations < 2){
+        std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'relator'" << COLOR_RESET << " must mediate at least two distinct endurants. " << location << "\n";
+        semanticError = true;
+    }
+
+    if (!semanticError) {
+        Output output;
+        output.patternName = "Relator Pattern";
+        output.element = "Class: " + cls.name;
+        output.status = wasCoerced ? "Incompleto" : "Completo";
+        syntaxStats.identifiedPatterns.push_back(output);
+    }
+
+    return semanticError;
+}
+
+bool Ast::checkMaterialRelations() {
+    bool semanticError = false;
+
+    for (const auto& rel : syntaxStats.relations) {
+        if (rel.stereotype == "material") {
+            std::string location = ""; 
+
+            bool relatorFound = false;
+            std::string foundRelatorName = "";
+            int mediationSourceUpper = -1; 
+            int mediationTargetUpper = -1; 
+
+            for (const auto& cls : syntaxStats.classes) {
+                if (cls.stereotype == "relator") {
+                    bool mediatesSource = false;
+                    bool mediatesTarget = false;
+                    int currentMediationSourceUpper = -1;
+                    int currentMediationTargetUpper = -1;
+
+                    for (const auto& med : syntaxStats.relations) {
+                        if (med.source == cls.name && med.stereotype == "mediation") {
+                            if (isSubtype(rel.source, med.target)) {
+                                mediatesSource = true;
+                                currentMediationSourceUpper = med.sourceCard.upper;
+                            }
+                            if (isSubtype(rel.target, med.target)) {
+                                mediatesTarget = true;
+                                currentMediationTargetUpper = med.targetCard.upper;
+                            }
+                        }
+                    }
+
+                    if (mediatesSource && mediatesTarget) {
+                        relatorFound = true;
+                        foundRelatorName = cls.name;
+                        mediationSourceUpper = currentMediationSourceUpper;
+                        mediationTargetUpper = currentMediationTargetUpper;
+                        break; 
+                    }
+                }
+            }
+
+            if (!relatorFound) {
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Material relation " << BOLD_RED << "'" << rel.name << "'" << COLOR_RESET << " between " << BOLD_YELLOW << "'" << rel.source << "'" << COLOR_RESET << " and " << BOLD_YELLOW << "'" << rel.target << "'" << COLOR_RESET << " is not derived from any Relator. A Relator mediating both ends is required. \n";
+                semanticError = true;
+            } else {
+                
+                int expectedUpper = -1;
+                if (mediationSourceUpper != -1 && mediationTargetUpper != -1) {
+                    expectedUpper = mediationSourceUpper * mediationTargetUpper;
+                }
+
+                if (expectedUpper == 1) {
+                    if (rel.targetCard.upper != 1) {
+                         std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Material relation " << BOLD_RED << "'" << rel.name << "'" << COLOR_RESET << " has invalid cardinality. Based on Relator " << BOLD_YELLOW << "'" << foundRelatorName << "'" << COLOR_RESET << ", the relation should be [1] (One-to-One path), but found " << (rel.targetCard.upper == -1 ? "[*]" : std::to_string(rel.targetCard.upper)) << ". \n";
+                         semanticError = true;
+                    }
+                }
+            }
+        }
+    }
+    return semanticError;
+}
 
 bool Ast::checkGensetPattern() {
     bool semanticError = false;

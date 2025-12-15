@@ -31,6 +31,8 @@ private:
 	bool checkPhasePattern(const ClassNode&);
 	bool checkGensetPattern();
 	bool checkModePattern(const ClassNode&);
+	bool checkRelatorPattern(const ClassNode&);
+	bool checkMaterialRelations();
 	
 	std::string getStereotype(const std::string&);
 	ClassNode* getClassNode(const std::string&, const std::string&);

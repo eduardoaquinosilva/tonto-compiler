@@ -1,0 +1,14 @@
+package Relator_package
+
+kind ClassName
+kind ClassNames
+
+role Role_NameOne specializes ClassName
+role Role_NameTwo specializes ClassNames
+
+relator Relator_Name {
+    @mediation [1..*] -- [1..*] Role_NameOne
+    @mediation [1..*] -- [1..*] Role_NameTwo
+}
+
+@material relation Role_NameOne [1..*] -- relationName -- [1..*] Role_NameTwo
