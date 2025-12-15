@@ -1,0 +1,18 @@
+package RoleMixim_Pattern
+
+kind ClassName
+kind ClassNames
+
+roleMixin RoleMixin_Nome
+
+role Role_NameOne specializes ClassName, RoleMixin_Nome
+role Role_NameTwo specializes ClassNames, RoleMixin_Nome
+
+disjoint complete genset RoleMixim_Genset_Nome { 
+    general RoleMixin_Nome
+    specifics Role_NameOne, Role_NameTwo
+}
+
+relator Contract {
+    @mediation [1..*] -- [1] RoleMixin_Nome
+}

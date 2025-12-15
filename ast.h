@@ -29,9 +29,10 @@ private:
 	bool checkSubkindPattern(const ClassNode&);
 	bool checkRolePattern(const ClassNode&);
 	bool checkPhasePattern(const ClassNode&);
-	bool checkGensetPattern();
 	bool checkModePattern(const ClassNode&);
 	bool checkRelatorPattern(const ClassNode&);
+	bool checkRoleMiximPattern(const ClassNode&);
+	bool checkGensetPattern();
 	bool checkMaterialRelations();
 	
 	std::string getStereotype(const std::string&);

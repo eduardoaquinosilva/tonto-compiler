@@ -121,6 +121,8 @@ bool Ast::checkStandalonePatterns() {
             semanticError = checkModePattern(cls) || semanticError;
         }else if(cls.stereotype == "relator"){
             semanticError = checkRelatorPattern(cls) || semanticError;
+        }else if(cls.stereotype == "roleMixin"){
+            semanticError = checkRoleMiximPattern(cls) || semanticError;
         }
     }
     
@@ -299,6 +301,92 @@ bool Ast::checkRolePattern(const ClassNode& cls) {
     if (!currentClassError) {
         Output output;
         output.patternName = "Role Pattern";
+        output.element = "Class: " + cls.name;
+        output.status = wasCoerced ? "Incompleto" : "Completo";
+        syntaxStats.identifiedPatterns.push_back(output);
+    }
+
+    return semanticError;
+}
+
+bool Ast::checkRoleMiximPattern(const ClassNode& cls) {
+    bool semanticError = false;
+    bool wasCoerced = false;
+
+    std::string location = "[" + cls.fileName + "(" + std::to_string(cls.line) + "," + std::to_string(cls.column) +")]";
+
+    for (const auto& child : syntaxStats.classes) {
+        bool isChild = false;
+        for (const auto& parent : child.parents) {
+            if (parent == cls.name) {
+                isChild = true;
+                break;
+            }
+        }
+
+        if (isChild) {
+            std::string s = child.stereotype;
+            if (s == "kind" || s == "subkind" || s == "category" || s == "collective" || 
+                s == "quantity" || s == "relator" || s == "mode" || s == "quality" || s == "mixin") {
+                
+                std::string childLoc = "[" + child.fileName + "(" + std::to_string(child.line) + "," + std::to_string(child.column) +")]";
+                
+                std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << child.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'" << s << "'" << COLOR_RESET << " cannot specialize the anti-rigid class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " (" << cls.stereotype << "). Prohibited specialization: rigid/semi-rigid specializing an anti-rigid. " << childLoc << "\n";
+                semanticError = true;
+            }
+        }
+    }
+
+    std::vector<RelationNode> newRelations;
+    std::vector<const RelationNode*> mediatingRelations;
+
+    for (const auto& rel : syntaxStats.relations) {
+        if (rel.target == cls.name && rel.stereotype == "mediation") {
+            mediatingRelations.push_back(&rel);
+        }
+    }
+
+    if (!mediatingRelations.empty()) {
+        std::vector<std::string> childrenNames;
+        for (const auto& candidate : syntaxStats.classes) {
+            for (const auto& p : candidate.parents) {
+                if (p == cls.name) {
+                    childrenNames.push_back(candidate.name);
+                    break;
+                }
+            }
+        }
+
+        for (const auto* relPtr : mediatingRelations) {
+            for (const auto& childName : childrenNames) {
+                bool alreadyMediated = false;
+                for (const auto& r : syntaxStats.relations) {
+                    if (r.source == relPtr->source && r.target == childName && r.stereotype == "mediation") {
+                        alreadyMediated = true;
+                        break;
+                    }
+                }
+
+                // Coerção
+                if (!alreadyMediated) {
+                    std::cout << BOLD_YELLOW << "Semantic Warning: " << COLOR_RESET << "Inferring mediation from Relator " << BOLD_YELLOW << "'" << relPtr->source << "'" << COLOR_RESET << " to class " << BOLD_YELLOW << "'" << childName << "'" << COLOR_RESET << " inherited from RoleMixin " << BOLD_YELLOW << "'" << cls.name << "'" << COLOR_RESET << ". " << location << "\n";
+                    
+                    RelationNode newRel = *relPtr;
+                    newRel.target = childName;
+                    newRelations.push_back(newRel);
+                    wasCoerced = true;
+                }
+            }
+        }
+    }
+
+    for (const auto& nr : newRelations) {
+        syntaxStats.relations.push_back(nr);
+    }
+
+    if (!semanticError) {
+        Output output;
+        output.patternName = "RoleMixin Pattern";
         output.element = "Class: " + cls.name;
         output.status = wasCoerced ? "Incompleto" : "Completo";
         syntaxStats.identifiedPatterns.push_back(output);
@@ -632,6 +720,25 @@ bool Ast::checkGensetPattern() {
     bool wasCoerced = false;
     
     for (auto& genset : syntaxStats.gensets) {
+        std::string location = "[" + genset.fileName + "(" + std::to_string(genset.line) + "," + std::to_string(genset.column) +")]";
+
+        for (const auto& childName : genset.children) {
+            ClassNode* childNode = getClassNode(childName, genset.fileName);
+            if (childNode) {
+                bool inherits = false;
+                for (const auto& p : childNode->parents) {
+                    if (p == genset.parent) {
+                        inherits = true;
+                        break;
+                    }
+                }
+                if (!inherits) {
+                    std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Structural Consistency: Class " << BOLD_RED << "'" << childName << "'" << COLOR_RESET << " listed in specifics of genset " << BOLD_RED << "'" << genset.name << "'" << COLOR_RESET << " does not specialize the general class " << BOLD_RED << "'" << genset.parent << "'" << COLOR_RESET << ". " << location << "\n";
+                    semanticError = true;
+                }
+            }
+        }
+
         std::string parentStereotype = getStereotype(genset.parent);
 
         if (ultimateSortals.count(parentStereotype)) {
@@ -650,8 +757,6 @@ bool Ast::checkGensetPattern() {
                 childrenAreSubkinds = false;
                 childrenAreRoles = false;
             }
-
-            std::string location = "[" + genset.fileName + "(" + std::to_string(genset.line) + "," + std::to_string(genset.column) +")]";
 
             if (childrenAreSubkinds) {
                 if (!genset.isDisjoint) {
