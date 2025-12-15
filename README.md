@@ -45,9 +45,9 @@ Ao final da análise, o programa atualiza o arquivo `output.txt` com um **Relat�
 - **Subkind Pattern**: Define as relações semânticas do estereótipo `subkind`, validando os estereótipos das superclasses e fornecendo coerções cabíveis.
 - **Role Pattern**: Define as relações semânticas do estereótipo `role`, validando os estereótipos das superclasses e fornecendo coerções cabíveis.
 - **Phase Pattern**: Define as relações semânticas do estereótipo `phase`, validando os estereótipos das superclasses e a presença de classes irmãs, fornecendo coerções cabíveis.
-- **Relator Pattern**:
-- **Mode Pattern**:
-- **RoleMixin Pattern**:
+- **Relator Pattern**: Define as relações semânticas do estereótipo `relator`, validando suas cardinalidades, o estereótipo do seu alvo, redundância de dependências e quantidade de heranças, fornecendo coerções cabíveis.
+- **Mode Pattern**: Define as relações semânticas do estereótipo `mode`, validando o estereótipo de suas mediações e a quantidade de mediações.
+- **RoleMixin Pattern**: Define as relações semânticas do estereótipo `roleMIxim`, validando os estereótipos dos filhos e se as classes que ele especifíca especializam ele, fornecendo coerções cabíveis.
 
 É na fase da análise semântica que os vários arquivos começam a ser tratados como partes de um único projeto, permitindo a correta importação de classes declaradas em arquivos externos ao que as está utilizando.
 
@@ -87,27 +87,27 @@ make
 ## 📤 Exemplo de Saída
 
 ```
---- Parsing Report ---
-Packages (2):
-  - Person
-  - Car
-Classes (2):
-  - Persona
-  - PersonaErros
-New Data Types (1):
-  - AddressDataType
-Enums (1):
-  - EyeColor
-Generalization Sets (2):
-  - Set Name: PersonAgeGroup
-    Parent: Person
-    Children: Child Adult 
-  - Set Name: PersonAgeGroup
-    Parent: Person
-    Children: Child Teenager Adult 
-Relations (3):
-  - [Internal] | Persona (<<componentOf>> has) -> Department
-  - [External] | EmploymentContract (<<mediation>>) -> Employee
-  - [Internal] | PersonaErros (<<componentOf>> has) -> Department
+--- Semantic Report ---
+  - [RoleMixin Pattern] em Class: RoleMixin_Nome (Incompleto)
+  - [Role Pattern] em Class: Role_NameOne (Completo)
+  - [Role Pattern] em Class: Role_NameTwo (Completo)
+  - [Relator Pattern] em Class: Contract (Completo)
+  - [Phase Pattern] em Class: Crianca (Completo)
+  - [Phase Pattern] em Class: Adolescente (Completo)
+  - [Phase Pattern] em Class: Adulto (Completo)
+  - [Phase Pattern] em Class: Idoso (Completo)
+  - [Role Pattern] em Class: FuncionarioDaUBS (Completo)
+  - [Role Pattern] em Class: Enfermeiro (Completo)
+  - [Role Pattern] em Class: Medico (Completo)
+  - [Role Pattern] em Class: Paciente (Completo)
+  - [Relator Pattern] em Class: Consulta_Medica (Completo)
+  - [Relator Pattern] em Class: Vacinacao (Completo)
+  - [Relator Pattern] em Class: Servico_Basico_De_Saude (Completo)
+  - [Relator Pattern] em Class: Vinculo_Empregaticio (Completo)
+  - [Relator Pattern] em Class: Vacinacao (Completo)
+  - [Relator Pattern] em Class: Consulta_Medica (Completo)
+  - [Relator Pattern] em Class: Servico_Basico_De_Saude (Completo)
+  - [Relator Pattern] em Class: Vinculo_Empregaticio (Completo)
+  - [Role Pattern (Genset)] em Genset: Paciente_E_Funcionario (Completo)
 
 ```
