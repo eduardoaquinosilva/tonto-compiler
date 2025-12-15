@@ -291,7 +291,7 @@ bool Ast::checkRolePattern(const ClassNode& cls) {
         }
 
         if (!allMixins) {
-            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " os stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " does not inherit identity from any Ultimate Sortal (Kind, Collective, etc). " << location << "\n";
+            std::cout << BOLD_RED << "Semantic Error: " << COLOR_RESET << "Class " << BOLD_RED << "'" << cls.name << "'" << COLOR_RESET << " of stereotype " << BOLD_YELLOW << "'role'" << COLOR_RESET << " does not inherit identity from any Ultimate Sortal (Kind, Collective, etc). " << location << "\n";
             
             semanticError = true;
             currentClassError = true;
